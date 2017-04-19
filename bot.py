@@ -5,7 +5,7 @@ import random
 import os
 import re
 
-bot_dir = os.path.abspath('')
+bot_dir = "/root/cafe-mod-bot"#os.path.abspath('')
 
 # Set token from file
 token = ""
@@ -35,6 +35,13 @@ for file in os.listdir(bot_dir+"/triggers"):
 				phrase_responses[phrases[-1]].pop()
 print(phrases)
 
+pasta = {}
+for file in os.listdir(bot_dir+"/pasta"):
+	if file.endswith(".txt"):
+		with open(bot_dir+"/pasta/"+file, 'r') as f:
+			pasta[file] = f.read()
+print(list(pasta.keys()))
+
 def addTrigger(parts):
 	phrases.append(parts[0])
 	phrase_responses[parts[0]] = parts[1:]
@@ -52,14 +59,21 @@ def findWord(w, p):
 def sendMessage(id, message):
 	requests.get(url + 'sendMessage', params=dict(chat_id=id, text=message))
 
+def sendApplause(id):
+	for i in range(0,3):
+		sendMessage(id, u"😎 //")
+
+def sendPasta(message, id):
+	sendMessage(id, pasta[random.choice(list(pasta.keys()))])
+
 while True:
 	get_updates = json.loads(requests.get(url + 'getUpdates', params=dict(offset=(last_update+1))).text)
 
 	for update in get_updates['result']:
 		last_update = update['update_id']
-		user = update['message']['from']['first_name']
-		print(str(last_update)+": "+user)
 		if 'message' in update and 'text' in update['message']:
+			user = update['message']['from']['first_name']
+			print(str(last_update)+": "+user)
 			message = update['message']['text'].lower()
 			c_id = update['message']['chat']['id']
 			if message.startswith('/newtrigger'):
@@ -69,6 +83,10 @@ while True:
 				print("New trigger: "+parts[0]+" made by "+user)
 			elif message.startswith('/list'):
 				sendMessage(c_id, "\n".join(phrases))
+			elif message.startswith('/applause'):
+				sendApplause(c_id)
+			elif message.startswith('/pasta'):
+				sendPasta(message, c_id)
 			else: # Generic Message
 				for word in phrases:
 					if findWord(word, message):
