@@ -43,12 +43,21 @@ for file in os.listdir(bot_dir+"/pasta"):
 print(list(pasta.keys()))
 
 def addTrigger(parts):
-	phrases.append(parts[0])
-	phrase_responses[parts[0]] = parts[1:]
-	file_name = parts[0].replace(" ", "-") + ".txt"
-	with open(bot_dir+"/triggers/"+file_name, 'w') as f:
-		for part in parts:
-			f.write(part+"\n")
+	if(len(parts) > 1):
+		phrases.append(parts[0])
+		phrase_responses[parts[0]] = parts[1:]
+		file_name = parts[0].replace(" ", "-") + ".txt"
+		with open(bot_dir+"/triggers/"+file_name, 'w') as f:
+			for part in parts:
+				f.write(part+"\n")
+
+def addPasta(parts):
+	if(len(parts) == 2):
+		pasta[parts[0]] = parts[1]
+		file_name = parts[0].replace(" ", "-") + ".txt"
+		with open(bot_dir+"/pasta/"+file_name, 'w') as f:
+			f.write(parts[1]+"\n")
+
 
 def findWord(w, p):
 	w = w.lower()
@@ -61,10 +70,58 @@ def sendMessage(id, message):
 
 def sendApplause(id):
 	for i in range(0,3):
-		sendMessage(id, u"😎 //")
+		sendMessage(id, u"😎//")
 
 def sendPasta(message, id):
-	sendMessage(id, pasta[random.choice(list(pasta.keys()))])
+	message = message.replace("/pasta ","",1) + ".txt"
+	if(message in pasta.keys()):
+		sendMessage(id, pasta[message])
+	else:
+		sendMessage(id, pasta[random.choice(list(pasta.keys()))])
+
+class Roll:
+	def __init__(self, init_string):
+		parts = init_string.split("d")
+		self.num = int(parts[0])
+		if(self.num < 1):
+			self.num = 1
+		self.size = int(parts[1])
+		if(self.size < 1):
+			self.size = 1
+		self.rolls = []
+		self.roll()
+
+	def roll(self):
+		if self.rolls:
+			return self.rolls
+		for i in range(self.num):
+			self.rolls.append(random.randint(1, self.size))
+		return self.rolls
+
+	def sum(self):
+		return sum(self.rolls)
+		
+
+def rollDice(message, id):
+	message = message.replace("/roll ","",1)
+	message = message.replace("/r ","",1)
+	rolls = []
+	mods = []
+	for part in message.split("+"):
+		if "d" in part:
+			rolls.append(Roll(part))
+		else:
+			mods.append(int(part))	
+	result = "You rolled:"
+	total = 0
+	for roll in rolls:
+		total += roll.sum()
+		result += "\n(" + ", ".join(str(s) for s in roll.rolls) + ") = " + str(roll.sum())
+	for mod in mods:
+		total += mod
+		result += "\n + " + str(mod)
+	result += "\n = " + str(total)
+	sendMessage(id, result)
 
 while True:
 	get_updates = json.loads(requests.get(url + 'getUpdates', params=dict(offset=(last_update+1))).text)
@@ -81,12 +138,22 @@ while True:
 				parts[0] = parts[0].replace("/newtrigger ","",1)
 				addTrigger(parts)
 				print("New trigger: "+parts[0]+" made by "+user)
-			elif message.startswith('/list'):
+			elif message.startswith('/newpasta'):
+				parts = message.split("\n",1)
+				parts[0] = parts[0].replace("/newpasta ", "", 1)
+				addPasta(parts)
+				print("New pasta: " + parts[0]+" made by " + user)
+			elif message.startswith('/listtrigger'):
 				sendMessage(c_id, "\n".join(phrases))
+			elif message.startswith('/listpasta'):
+				response = "\n".join(pasta.keys())
+				sendMessage(c_id, response.replace(".txt", ""))
 			elif message.startswith('/applause'):
 				sendApplause(c_id)
 			elif message.startswith('/pasta'):
 				sendPasta(message, c_id)
+			elif message.startswith('/roll') or message.startswith("/r"):
+				rollDice(message, c_id)
 			else: # Generic Message
 				for word in phrases:
 					if findWord(word, message):
