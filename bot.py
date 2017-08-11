@@ -33,14 +33,23 @@ for file in os.listdir(bot_dir+"/triggers"):
 			phrase_responses[phrases[-1]] = f.read().splitlines()
 			if not phrase_responses[phrases[-1]][-1]:
 				phrase_responses[phrases[-1]].pop()
+print("TRIGGERS")
 print(phrases)
 
+# Parse existing pasta
 pasta = {}
 for file in os.listdir(bot_dir+"/pasta"):
 	if file.endswith(".txt"):
 		with open(bot_dir+"/pasta/"+file, 'r') as f:
 			pasta[file] = f.read()
+print("\nPASTA:")
 print(list(pasta.keys()))
+
+characters = {}
+for file in os.listdir(bot_dir+"/characters"):
+	if file.endswith(".txt."):
+		with open(bot_dir+"/pasta/"+file, 'r') as f:
+			
 
 def addTrigger(parts):
 	if(len(parts) > 1):
@@ -108,10 +117,10 @@ def rollDice(message, id):
 	rolls = []
 	mods = []
 	for part in message.split("+"):
-		if "d" in part:
-			rolls.append(Roll(part))
-		else:
-			mods.append(int(part))	
+		if "d" in part: 
+			rolls.append(Roll(part)) 
+		else: 
+			mods.append(int(part)) 
 	result = "You rolled:"
 	total = 0
 	for roll in rolls:
@@ -123,13 +132,32 @@ def rollDice(message, id):
 	result += "\n = " + str(total)
 	sendMessage(id, result)
 
+class Character:
+	def __init__(self, name):
+		self.name = name
+		self.inventory = {}
+		self.stats = {}
+
+	def give_item(item, desc, amount):
+		if item in self.inventory:
+			self.inventory[item][1] += amount
+		else:
+			self.inventory[item] = (desc, amount)
+	
+	def set_stat(stat, num):
+		self.stats[stat] = num
+
+
+def roll_stat(stat, user, id):
+	characters{"user"
+
 while True:
 	get_updates = json.loads(requests.get(url + 'getUpdates', params=dict(offset=(last_update+1))).text)
 
 	for update in get_updates['result']:
 		last_update = update['update_id']
 		if 'message' in update and 'text' in update['message']:
-			user = update['message']['from']['first_name']
+			user = update['message']['from']['username']
 			print(str(last_update)+": "+user)
 			message = update['message']['text'].lower()
 			c_id = update['message']['chat']['id']
@@ -154,6 +182,8 @@ while True:
 				sendPasta(message, c_id)
 			elif message.startswith('/roll') or message.startswith("/r"):
 				rollDice(message, c_id)
+			elif message.startswith("/create_character"):
+				createCharacter(message, username, c_id) 
 			else: # Generic Message
 				for word in phrases:
 					if findWord(word, message):
