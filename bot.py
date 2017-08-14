@@ -76,6 +76,20 @@ class Character:
 			result += "\n" + item + " (x" + str(self.inventory[item][1]) + ") - " + self.inventory[item][0]
 		return result
 
+	def write_to_file(self, file_name):
+		output = self.name
+		for stat in self.stats.keys():
+			output += "\n"+stat+"="+str(self.stats[stat])
+		output += "\ninventory"
+		for item in self.inventory.keys():
+			output+= ":" + item+","+self.inventory[item][0]+","+str(self.inventory[item][1])
+
+		with open(file_name, 'w') as f:
+			f.write(output)
+
+
+
+
 
 # Parse existing triggers
 phrases = []
@@ -111,8 +125,9 @@ for file in os.listdir(bot_dir+"/characters"):
 				if line.startswith("inventory:"):
 					line = line.replace("inventory:","",1)
 					for item in line.split(":"):
-						group = item.split(",")
-						char.give_item(group[0], int(group[1]), group[2])
+						if item:
+							group = item.split(",")
+							char.give_item(group[0], int(group[1]), group[2])
 				elif "=" in line:
 					parts = line.split("=")
 					char.set_stat(parts[0], int(parts[1]))					
@@ -188,6 +203,7 @@ def set_stat(user, message, id):
 	message = message.replace("/set_stat ", "", 1)
 	parts = message.split(" ")
 	characters[user].set_stat(parts[0], int(parts[1]))
+	write_char_for_username(user)
 	show_stats(user, id)
 
 def give_item(user, message, id):
@@ -195,15 +211,20 @@ def give_item(user, message, id):
 	parts = message.split(" ", 2)
 	print(parts)
 	characters[user].give_item(parts[0], parts[1], parts[2])
+	write_char_for_username(user)
 	show_inventory(user, id)
 
 def create_character(message, user, c_id):
-	message = message.replace("/create_character ", "", 1).strip()
+	message = message.replace("/create_character", "", 1).strip()
 	if message:
 		characters[user] = Character(message)
+		write_char_for_username(user)
 		sendMessage(c_id, "Created character " + message + " for player " + user)
 	else:
 		sendMessage(c_id, "Name your character!")
+
+def write_char_for_username(user):
+	characters[user].write_to_file(bot_dir+"/characters/"+user+".txt")
 
 while True:
 	get_updates = json.loads(requests.get(url + 'getUpdates', params=dict(offset=(last_update+1))).text)
@@ -211,7 +232,10 @@ while True:
 	for update in get_updates['result']:
 		last_update = update['update_id']
 		if 'message' in update and 'text' in update['message']:
-			user = update['message']['from']['username']
+			try:
+				user = update['message']['from']['username']
+			except:
+				user = str(update['message']['from']['id'])
 			print(str(last_update)+": "+user)
 			message = update['message']['text']
 			message = message.replace("@"+bot_username, "")
