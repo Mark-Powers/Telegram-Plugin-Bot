@@ -58,7 +58,7 @@ class Character:
 
 	def give_item(self, item, amount, desc):
 		if item in self.inventory:
-			self.inventory[item][1] += amount
+			self.inventory[item] = (desc, self.inventory[item][1]+amount)
 		else:
 			self.inventory[item] = (desc, amount)
 	
@@ -83,7 +83,7 @@ class Character:
 			output += "\n"+stat+"="+str(self.stats[stat])
 		output += "\ninventory"
 		for item in self.inventory.keys():
-			output+= ":" + item+","+self.inventory[item][0]+","+str(self.inventory[item][1])
+			output+= ":" + item+","+self.inventory[item][1]+","+str(self.inventory[item][0])
 
 		with open(file_name, 'w') as f:
 			f.write(output)
@@ -174,8 +174,8 @@ def sendPasta(message, id):
 		sendMessage(id, pasta[random.choice(list(pasta.keys()))])
 	
 def rollDice(user, message, id):
-	message = message.replace("/roll ","",1)
-	message = message.replace("/r ","",1)
+	message = message.replace("/roll","",1).strip()
+	message = message.replace("/r","",1).strip()
 	rolls = []
 	constant = []
 	mods = []
@@ -186,7 +186,7 @@ def rollDice(user, message, id):
 		elif part.isdigit(): 
 			constant.append(int(part)) 
 		else:
-			if part in characters[user].stats:
+			if user in characters and part in characters[user].stats:
 				mods.append(part)
 	result = user + " rolled:"
 	total = 0
@@ -210,7 +210,7 @@ def show_inventory(user, id):
 	sendMessage(id, characters[user].inventory_string())
 
 def set_stat(user, message, id):
-	message = message.replace("/set_stat ", "", 1)
+	message = message.replace("/set_stat", "", 1).strip()
 	parts = message.split(" ")
 	if len(parts)==2:
 		characters[user].set_stat(parts[0], int(parts[1]))
@@ -220,15 +220,16 @@ def set_stat(user, message, id):
 		sendMessage(id, "Invalid number of arguments!")
 
 def give_item(user, message, id):
-	message = message.replace("/give_item ", "", 1)
+	message = message.replace("/give_itemx ", "", 1).strip()
 	parts = message.split(" ", 2)
+	print(parts)
 	item = parts[0]
 	amount = 1
 	desc = ""
 	if len(parts) > 1 and parts[1].isdigit():
 		amount = int(parts[1])
 	if len(parts) > 2:
-		amount = parts[2]
+		desc = parts[2]
 	characters[user].give_item(item, amount, desc)
 	write_char_for_username(user)
 	show_inventory(user, id)
@@ -285,7 +286,7 @@ while True:
 			elif message.startswith("/show_stats"):
 				if("@" in message):
 					user = username_pattern.search(message).group(1)
-					message.replace(" @"+user,"",1)
+					message = message.replace(" @"+user,"",1)
 				if user in characters:
 					show_stats(user, c_id) 
 				else:
@@ -293,7 +294,7 @@ while True:
 			elif message.startswith("/show_inventory"):
 				if("@" in message):
 					user = username_pattern.search(message).group(1)
-					message.replace(" @"+user,"",1)
+					message = message.replace(" @"+user,"",1)
 				if user in characters:
 					show_inventory(user, c_id) 
 				else:
@@ -301,7 +302,7 @@ while True:
 			elif message.startswith("/set_stat"):
 				if("@" in message):
 					user = username_pattern.search(message).group(1)
-					message.replace(" @"+user,"",1)
+					message = message = message.replace(" @"+user,"",1)
 				if user in characters:
 					set_stat(user, message, c_id) 
 				else:
@@ -309,7 +310,7 @@ while True:
 			elif message.startswith("/give_item"):
 				if("@" in message):
 					user = username_pattern.search(message).group(1)
-					message.replace(" @"+user,"",1)
+					message = message.replace(" @"+user,"",1)
 				if user in characters:
 					give_item(user, message, c_id)
 				else:
