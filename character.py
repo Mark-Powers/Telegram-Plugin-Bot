@@ -59,8 +59,18 @@ class CharacterManager:
 							char.set_stat(parts[0], int(parts[1]))					
 					self.__characters[file[:-4]] = char
 
+	def add_character(self, user, char):
+		self.__characters[user] = char
+
+	def has_character(self, user):
+		return user in self.__characters
+
+	def get_character(self, user):
+		return self.__characters[user]
+
 	def get_users(self):
 		return list(self.__characters.keys())
 
-	def get_commands(self):
-		return "uh"
+	def save_char(self, user):
+		characters[user].write_to_file(self.__char_directory+"/"+user+".txt")
+	

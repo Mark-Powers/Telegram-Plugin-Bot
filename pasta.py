@@ -13,9 +13,9 @@ class Pasta:
 	def add(self, name, pasta):
 		if name and pasta:
 			file_name = name + ".txt"
-			if output:
-				with open(self.__directory+"/"+file_name, 'w') as f:
-					f.write(pasta)
+			self.__pasta[name] = pasta
+			with open(self.__directory+"/"+file_name, 'w') as f:
+				f.write(pasta)
 
 	def get_pasta(self, message):
 		if(message in self.__pasta.keys()):

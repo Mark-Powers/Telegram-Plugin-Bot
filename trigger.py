@@ -18,12 +18,17 @@ class Trigger:
 		if phrase:
 			file_name = phrase + ".txt"
 			output = ""
-			for responses in responses:
+			final_responses = []
+			for response in responses:
 					if response:
-						f.write(part+"\n")
+						output += response +"\n"
+						final_responses.append(response)
 			if output:
+				self.__triggers[phrase] = final_responses
 				with open(self.__directory+"/"+file_name, 'w') as f:
 					f.write(output)
+				return True
+		return False
 
 	def parse(self, message):
 		for word in self.__triggers.keys():

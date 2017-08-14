@@ -36,14 +36,16 @@ def send_message(id, message):
 
 def add_trigger(command):
 	parts = command.get_args().splitlines()
-	if len(parts) > 1:
-		triggers.add(parts[0], parts[1:])
+	if len(parts) > 1 and triggers.add(parts[0], parts[1:]):
 		send_message(command.get_id(), "Added trigger: " + parts[0])
 	else:
 		send_message(command.get_id(), "Invalid syntax")
 
 def list_trigger(command):
-	send_message(command.get_id(), "\n".join(triggers.get_keys()))
+	if triggers.get_keys():
+		send_message(command.get_id(), "\n".join(triggers.get_keys()))
+	else:
+		send_message(command.get_id(), "No triggers set!")
 
 def add_pasta(command):
 	parts = command.get_args().split("\n",1)
@@ -54,7 +56,10 @@ def add_pasta(command):
 		send_message(command.get_id(), "Invalid syntax")
 
 def list_pasta(command):
-	send_message(command.get_id(), "\n".join(pasta.get_keys()))
+	if pasta.get_keys():
+		send_message(command.get_id(), "\n".join(pasta.get_keys()))
+	else:
+		send_message(command.get_id(), "No pasta set!")
 
 def send_pasta(command):
 	send_message(command.get_id(), pasta.get_pasta(command.get_args))
@@ -64,19 +69,20 @@ def send_applause(command):
 		send_message(command.get_id(), u"😎//")
 	
 def roll_dice(command):
-	message = message.replace("/roll","",1).strip()
-	message = message.replace("/r","",1).strip()
+	user = command.get_sender()
+	if command.get_mention():
+		user = command.get_mention()
 	rolls = []
 	constant = []
 	mods = []
-	for part in message.split("+"):
-		#if "d" in part: 
+	for part in command.get_args().split("+"):
+		part = part.strip()
 		if dice_format_pattern.search(part):
 			rolls.append(Roll(part)) 
 		elif part.isdigit(): 
 			constant.append(int(part)) 
 		else:
-			if user in characters and part in characters[user].stats:
+			if char_man.has_character(user) and part in char_man.get_character(user).stats:
 				mods.append(part)
 	result = user + " rolled:"
 	total = 0
@@ -84,65 +90,78 @@ def roll_dice(command):
 		total += roll.sum()
 		result += "\n(" + ", ".join(str(s) for s in roll.rolls) + ") = " + str(roll.sum())
 	for mod in mods:		
-		mod_value = int((characters[user].stats[mod]-10)/2)
+		mod_value = int((char_man.get_character(user).stats[mod]-10)/2)
 		total += mod_value
 		result += "\n + " + mod +" (" + str(mod_value) + ")"
 	for c in constant:
 		total += c
 		result += "\n + " + str(c)
 	result += "\n = " + str(total)
-	send_message(id, result)
+	send_message(command.get_id(), result)
 
 def show_stats(command):
-	send_message(id, characters[user].stat_string())
+	user = command.get_sender()
+	if command.get_mention():
+		user = command.get_mention()
+	if char_man.has_character(user):
+		send_message(command.get_id(), char_man.get_character(user).stat_string())
+	else:
+		send_message(command.get_id(), user + " does not have a character!")
 
 def show_inventory(command):
-	send_message(id, characters[user].inventory_string())
+	user = command.get_sender()
+	if command.get_mention():
+		user = command.get_mention()
+	if char_man.has_character(user):
+		send_message(command.get_id(), char_man.get_character(user).inventory_string())
+	else:
+		send_message(command.get_id(), user + " does not have a character!")
 
 def set_stat(command):
-	if("@" in message):
-		user = username_pattern.search(message).group(1)
-		message = message.replace(" @"+user,"",1)
-	if user in characters:
-		show_stats(user, c_id) 
+	user = command.get_sender()
+	if command.get_mention():
+		user = command.get_mention()
+	if char_man.has_character(user):
+		# TODO could stats be multiple words?
+		parts = command.get_args().split(" ")
+		if len(parts)==2:
+			char_man.get_character(user).set_stat(parts[0], int(parts[1]))
+			char_man.save_char(user)
+			show_stats(command)
+		else:
+			send_message(command.get_id(), "Invalid syntax arguments!")
 	else:
-		send_message(c_id, user + " does not have a character!")
-
-	message = message.replace("/set_stat", "", 1).strip()
-	parts = message.split(" ")
-	if len(parts)==2:
-		characters[user].set_stat(parts[0], int(parts[1]))
-		write_char_for_username(user)
-		show_stats(user, id)
-	else:
-		send_message(id, "Invalid number of arguments!")
+		send_message(command.get_id(), user + " does not have a character!")
 
 def give_item(command):
-	message = message.replace("/give_item", "", 1).strip()
-	parts = message.split(" ", 2)
-	print(parts)
-	item = parts[0]
-	amount = 1
-	desc = "no description"
-	if len(parts) > 1 and parts[1].isdigit():
-		amount = int(parts[1])
-	if len(parts) > 2:
-		desc = parts[2]
-	characters[user].give_item(item, amount, desc)
-	write_char_for_username(user)
-	show_inventory(user, id)
+	user = command.get_sender()
+	if command.get_mention():
+		user = command.get_mention()
+	if char_man.has_character(user):
+		if command.get_args():
+			parts = command.get_args().split("|")
+			item = parts[0].strip()
+			amount = 1
+			desc = "no description"
+			if len(parts) > 1 and parts[1].strip().isdigit():
+				amount = int(parts[1].strip())
+			if len(parts) > 2:
+				desc = parts[2].strip()
+			char_man.get_character(user).give_item(item, amount, desc)
+			char_man.save_char(user)
+			show_inventory(command)
+		else:
+			send_message(command.get_id(), "Requires at least one argument!")
+	else:
+		send_message(command.get_id(), user + " does not have a character!")
 
 def create_character(command):
-	message = message.replace("/create_character", "", 1).strip()
-	if message:
-		characters[user] = Character(message)
-		write_char_for_username(user)
-		send_message(c_id, "Created character " + message + " for player " + user)
+	if message.get_args():
+		char_man.add_character(message.get_sender(), Character(message))
+		char_man.save_char(message.get_sender())
+		send_message(c_id, "Created character '" + message.get_args() + "'' for player " + user)
 	else:
 		send_message(c_id, "Name your character!")
-
-def write_char_for_username(user):
-	characters[user].write_to_file(bot_dir+"/characters/"+user+".txt")
 
 class Command:
 	def __init__(self, sender, message, id):
@@ -160,7 +179,7 @@ class Command:
 		else:
 			self.mention = ""
 		message = message.replace("@"+user,"",1).strip()
-		self.args = message
+		self.args = message.strip()
 		self.sender = sender
 		self.id = id
 
@@ -206,17 +225,15 @@ while True:
 				user = update['message']['from']['username']
 			except:
 				user = str(update['message']['from']['id'])
-			print(str(last_update)+": "+user)
 			message = update['message']['text']
 			message = message.replace("@"+bot_username, "")
 			c_id = update['message']['chat']['id']
 			if message.startswith("/"): # Message is a command
 				command = Command(user, message, c_id)
-				print(command.get_command() + "->" + command.get_args())
 				if command.get_command() in commands:
 					commands[command.get_command()](command)
 			else: # Message is normal
 				reply = triggers.parse(message)
 				if reply:
-					send_message(c_id, reply)	
+					send_message(c_id, reply)
 	time.sleep(config.get_sleep_interval())
