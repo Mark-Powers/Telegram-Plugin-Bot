@@ -83,7 +83,7 @@ class Character:
 			output += "\n"+stat+"="+str(self.stats[stat])
 		output += "\ninventory"
 		for item in self.inventory.keys():
-			output+= ":" + item+","+self.inventory[item][1]+","+str(self.inventory[item][0])
+			output+= ":" + item+","+str(self.inventory[item][1])+","+self.inventory[item][0]
 
 		with open(file_name, 'w') as f:
 			f.write(output)
@@ -220,12 +220,12 @@ def set_stat(user, message, id):
 		sendMessage(id, "Invalid number of arguments!")
 
 def give_item(user, message, id):
-	message = message.replace("/give_itemx ", "", 1).strip()
+	message = message.replace("/give_item", "", 1).strip()
 	parts = message.split(" ", 2)
 	print(parts)
 	item = parts[0]
 	amount = 1
-	desc = ""
+	desc = "no description"
 	if len(parts) > 1 and parts[1].isdigit():
 		amount = int(parts[1])
 	if len(parts) > 2:
