@@ -1,3 +1,5 @@
+import os
+
 class Character:
 	def __init__(self, name):
 		self.name = name
@@ -35,3 +37,30 @@ class Character:
 
 		with open(file_name, 'w') as f:
 			f.write(output)
+
+class CharacterManager:
+	def __init__(self, char_directory):
+		self.__char_directory = char_directory
+		self.__characters = {}
+		for file in os.listdir(char_directory):
+			if file.endswith(".txt"):
+				with open(char_directory+"/"+file, 'r') as f:
+					lines = f.readlines()
+					char = Character(lines.pop(0).strip())
+					for line in lines:
+						if line.startswith("inventory:"):
+							line = line.replace("inventory:","",1)
+							for item in line.split(":"):
+								if item:
+									group = item.split(",")
+									char.give_item(group[0], int(group[1]), group[2])
+						elif "=" in line:
+							parts = line.split("=")
+							char.set_stat(parts[0], int(parts[1]))					
+					self.__characters[file[:-4]] = char
+
+	def get_users(self):
+		return list(self.__characters.keys())
+
+	def get_commands(self):
+		return "uh"

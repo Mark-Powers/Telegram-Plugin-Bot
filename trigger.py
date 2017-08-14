@@ -25,8 +25,6 @@ class Trigger:
 				with open(self.__directory+"/"+file_name, 'w') as f:
 					f.write(output)
 
-				
-
 	def parse(self, message):
 		for word in self.__triggers.keys():
 			#word = word.lower()
@@ -37,4 +35,4 @@ class Trigger:
 		return ""
 
 	def get_keys(self):
-		return self.__triggers.keys()
+		return list(self.__triggers.keys())
