@@ -49,7 +49,7 @@ class CharacterManager:
 					char = Character(lines.pop(0).strip())
 					for line in lines:
 						if line.startswith("inventory:"):
-							line = line.replace("inventory:","",1)
+							line = line.replace("inventory:","",1).strip()
 							for item in line.split(":"):
 								if item:
 									group = item.split(",")
@@ -72,5 +72,5 @@ class CharacterManager:
 		return list(self.__characters.keys())
 
 	def save_char(self, user):
-		characters[user].write_to_file(self.__char_directory+"/"+user+".txt")
+		self.__characters[user].write_to_file(self.__char_directory+"/"+user+".txt")
 	

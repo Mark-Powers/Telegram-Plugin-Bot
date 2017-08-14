@@ -1,5 +1,6 @@
 import os
 import random
+import re
 
 class Trigger:
 	def __init__(self, trigger_directory):
