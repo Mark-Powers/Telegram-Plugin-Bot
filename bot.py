@@ -235,7 +235,7 @@ while True:
 				sendApplause(c_id)
 			elif message.startswith('/pasta'):
 				sendPasta(message, c_id)
-			elif message.startswith('/roll') or message.startswith("/r"):
+			elif message.startswith('/roll ') or message.startswith("/r "):
 				rollDice(message, c_id)
 			elif message.startswith("/create_character"):
 				create_character(message, user, c_id) 
