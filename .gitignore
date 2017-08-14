@@ -1,6 +1,6 @@
-token
+config.txt
 triggers/*.txt
 last_update
 pasta/*.txt
 characters/*.txt
-
+__pycache__/*
