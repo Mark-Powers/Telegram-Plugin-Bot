@@ -18,6 +18,7 @@ except:
 url = 'https://api.telegram.org/bot%s/' % token
 
 username_pattern = re.compile("@(\w+)")
+dice_format_pattern = re.compile("\d+d\d+")
 
 # Set last_update from file
 last_update = 0
@@ -156,7 +157,7 @@ def findWord(w, p):
 	w = w.lower()
 	p = p.lower()
 	exp = "".join([r'\b', w, r'\b'])
-	return re.match(exp, p)
+	return re.search(exp, p)
 
 def sendMessage(id, message):
 	requests.get(url + 'sendMessage', params=dict(chat_id=id, text=message))
@@ -172,24 +173,33 @@ def sendPasta(message, id):
 	else:
 		sendMessage(id, pasta[random.choice(list(pasta.keys()))])
 	
-def rollDice(message, id):
+def rollDice(user, message, id):
 	message = message.replace("/roll ","",1)
 	message = message.replace("/r ","",1)
 	rolls = []
+	constant = []
 	mods = []
 	for part in message.split("+"):
-		if "d" in part: 
+		#if "d" in part: 
+		if dice_format_pattern.search(part):
 			rolls.append(Roll(part)) 
-		else: 
-			mods.append(int(part)) 
-	result = "You rolled:"
+		elif part.isdigit(): 
+			constant.append(int(part)) 
+		else:
+			if part in characters[user].stats:
+				mods.append(part)
+	result = user + " rolled:"
 	total = 0
 	for roll in rolls:
 		total += roll.sum()
 		result += "\n(" + ", ".join(str(s) for s in roll.rolls) + ") = " + str(roll.sum())
-	for mod in mods:
-		total += mod
-		result += "\n + " + str(mod)
+	for mod in mods:		
+		mod_value = int((characters[user].stats[mod]-10)/2)
+		total += mod_value
+		result += "\n + " + mod +" (" + str(mod_value) + ")"
+	for c in constant:
+		total += c
+		result += "\n + " + str(c)
 	result += "\n = " + str(total)
 	sendMessage(id, result)
 
@@ -260,7 +270,7 @@ while True:
 			elif message.startswith('/pasta'):
 				sendPasta(message, c_id)
 			elif message.startswith('/roll') or message.startswith("/r"):
-				rollDice(message, c_id)
+				rollDice(user, message, c_id)
 			elif message.startswith("/create_character"):
 				create_character(message, user, c_id) 
 			elif message.startswith("/show_stats"):
