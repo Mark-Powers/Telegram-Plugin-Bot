@@ -5,8 +5,8 @@ import random
 import os
 import re
 
-bot_dir = os.path.abspath('')
-bot_username = ""
+bot_dir = "/root/cafe-mod-bot"#os.path.abspath('')
+bot_username = "cafe_mod_bot"
 
 # Set token from file
 token = ""
@@ -202,15 +202,24 @@ def show_inventory(user, id):
 def set_stat(user, message, id):
 	message = message.replace("/set_stat ", "", 1)
 	parts = message.split(" ")
-	characters[user].set_stat(parts[0], int(parts[1]))
-	write_char_for_username(user)
-	show_stats(user, id)
+	if len(parts)==2:
+		characters[user].set_stat(parts[0], int(parts[1]))
+		write_char_for_username(user)
+		show_stats(user, id)
+	else:
+		sendMessage(id, "Invalid number of arguments!")
 
 def give_item(user, message, id):
 	message = message.replace("/give_item ", "", 1)
 	parts = message.split(" ", 2)
-	print(parts)
-	characters[user].give_item(parts[0], parts[1], parts[2])
+	item = parts[0]
+	amount = 1
+	desc = ""
+	if len(parts) > 1 and parts[1].isdigit():
+		amount = int(parts[1])
+	if len(parts) > 2:
+		amount = parts[2]
+	characters[user].give_item(item, amount, desc)
 	write_char_for_username(user)
 	show_inventory(user, id)
 
