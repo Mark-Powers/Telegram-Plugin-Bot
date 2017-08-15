@@ -75,11 +75,20 @@ def roll_dice(command):
 	rolls = []
 	constant = []
 	mods = []
-	for part in command.get_args().split("+"):
+	parts = command.get_args().split("+")
+	for part in parts:	
+		if "-" in part:
+			try:
+				index = part.index("-",1)
+				new_part = part[index:]
+				part = part[:index]
+				parts.append(new_part)
+			except:
+				pass # part is just a plain negative number
 		part = part.strip()
 		if dice_format_pattern.search(part):
 			rolls.append(Roll(part)) 
-		elif part.isdigit(): 
+		elif part.replace("-","",1).isdigit():
 			constant.append(int(part)) 
 		else:
 			if char_man.has_character(user) and part in char_man.get_character(user).stats:
@@ -228,10 +237,14 @@ while True:
 			message = update['message']['text']
 			message = message.replace("@"+bot_username, "")
 			c_id = update['message']['chat']['id']
+			print(str(last_update)+": "+user)
 			if message.startswith("/"): # Message is a command
 				command = Command(user, message, c_id)
 				if command.get_command() in commands:
-					commands[command.get_command()](command)
+					try:
+						commands[command.get_command()](command)
+					except Exception as e:
+						send_message(c_id, "I'm afraid I can't do that.\n'"+str(e)+"'")
 			else: # Message is normal
 				reply = triggers.parse(message)
 				if reply:
