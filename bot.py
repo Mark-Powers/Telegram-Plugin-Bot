@@ -2,6 +2,7 @@ import requests
 import json
 import re
 import time
+import threading
 
 from roll import Roll
 from character import Character
@@ -33,6 +34,21 @@ print(char_man.get_users())
 
 def send_message(id, message):
 	requests.get(url + 'sendMessage', params=dict(chat_id=id, text=message))
+
+def restrict_chat_member(id, u_id, name, state):
+	reply = requests.get(url + "restrictChatMember", params=dict(chat_id=id, user_id=u_id, can_send_messages=state))
+	if reply.ok:
+		if state:
+			send_message(id, name + " can talk again.")
+		else:
+			send_message(id, name + " has been silenced!")
+	else:
+		send_message(id, "I'm afraid I can't do that.\n" + str(reply.status_code))
+
+def timeout_member(id, u_id, name, minutes):
+	restrict_chat_member(id, u_id, name, False)
+	t = threading.Timer(minutes*60, restrict_chat_member, [id, u_id, name, True])
+	t.start()
 
 def add_trigger(command):
 	parts = command.get_args().splitlines()
@@ -67,7 +83,7 @@ def send_pasta(command):
 def send_applause(command):
 	for i in range(0,3):
 		send_message(command.get_id(), u"😎//")
-	
+
 def roll_dice(command):
 	user = command.get_sender()
 	if command.get_mention():
@@ -76,7 +92,7 @@ def roll_dice(command):
 	constant = []
 	mods = []
 	parts = command.get_args().split("+")
-	for part in parts:	
+	for part in parts:
 		if "-" in part:
 			try:
 				index = part.index("-",1)
@@ -87,9 +103,9 @@ def roll_dice(command):
 				pass # part is just a plain negative number
 		part = part.strip()
 		if dice_format_pattern.search(part):
-			rolls.append(Roll(part)) 
+			rolls.append(Roll(part))
 		elif part.replace("-","",1).isdigit():
-			constant.append(int(part)) 
+			constant.append(int(part))
 		else:
 			if char_man.has_character(user) and part in char_man.get_character(user).stats:
 				mods.append(part)
@@ -98,7 +114,7 @@ def roll_dice(command):
 	for roll in rolls:
 		total += roll.sum()
 		result += "\n(" + ", ".join(str(s) for s in roll.rolls) + ") = " + str(roll.sum())
-	for mod in mods:		
+	for mod in mods:
 		mod_value = int((char_man.get_character(user).stats[mod]-10)/2)
 		total += mod_value
 		result += "\n + " + mod +" (" + str(mod_value) + ")"
@@ -245,6 +261,12 @@ while True:
 						commands[command.get_command()](command)
 					except Exception as e:
 						send_message(c_id, "I'm afraid I can't do that.\n'"+str(e)+"'")
+			elif message.startswith("silence"):
+				if "reply_to_message" in update['message']:
+					reply = update['message']["reply_to_message"]
+					u_id = reply["from"]["id"]
+					name = reply["from"]["first_name"]
+					timeout_member(c_id, u_id, name, 5)
 			else: # Message is normal
 				reply = triggers.parse(message)
 				if reply:
