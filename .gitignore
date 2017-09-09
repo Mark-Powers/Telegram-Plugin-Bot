@@ -1,6 +1,4 @@
 config.txt
-triggers/*.txt
-last_update
-pasta/*.txt
+plugins/*/
 characters/*.txt
-__pycache__/*
+**/__pycache__/*

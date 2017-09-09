@@ -1,15 +1,20 @@
 import os
 import random
+from plugin import Plugin
 
-class Pasta:
-	def __init__(self, pasta_directory):
-		self.__directory = pasta_directory
+def load():
+	return Pasta()
+
+class Pasta(Plugin):
+	def __init__(self):
 		self.__pasta = {}
-		for file in os.listdir(pasta_directory):
+		if not os.path.exists("pasta"):
+			os.makedirs("pasta")
+		for file in os.listdir("pasta"):
 			if file.endswith(".txt"):
-				with open(pasta_directory+"/"+file, 'r') as f:
+				with open("pasta"+"/"+file, 'r') as f:
 					self.__pasta[file[:-4]] = f.read()
-	
+
 	def add(self, name, pasta):
 		if name and pasta:
 			file_name = name + ".txt"
@@ -27,3 +32,15 @@ class Pasta:
 
 	def get_keys(self):
 		return list(self.__pasta.keys())
+
+	def on_command(command):
+		return "PASTA"
+
+	def get_commands(self):
+		return ["pasta", "listpasta"]
+
+	def get_name(self):
+		return "Pasta"
+
+	def get_help(self):
+		return "/pasta <name (optional)>"

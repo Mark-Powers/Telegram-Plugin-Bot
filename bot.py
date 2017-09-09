@@ -3,34 +3,82 @@ import json
 import re
 import time
 import threading
+import os
+import imp
 
 from roll import Roll
 from character import Character
 from character import CharacterManager
 from config import Config
-from pasta import Pasta
 from trigger import Trigger
+from plugin import Plugin
 
-config = Config("config.txt")
 
-token = config.get_token()
-bot_dir = config.get_bot_dir()
-bot_username = config.get_bot_username()
-url = "https://api.telegram.org/bot"+token+"/"
+class Bot:
+	def __init__(self, config):
+		self.username = config.get_bot_username()
+		self.directory = config.get_bot_dir()
+		self.base_url = "https://api.telegram.org/bot"+config.get_token()+"/"
+		self.sleep_interval = config.get_sleep_interval()
+
+		self.plugins = []
+		for plugin in config.get_plugins():
+			print(plugin)
+			mod = __import__("plugins." + plugin)
+			self.plugins.append(eval("mod."+plugin+".load()"))
+		print(self.plugins)
+
+	def start(self):
+		last_update = 0
+		while True:
+			get_updates = json.loads(requests.get(self.base_url + 'getUpdates', params=dict(offset=(last_update+1))).text)
+
+			for update in get_updates['result']:
+				last_update = update['update_id']
+				if 'message' in update and 'text' in update['message']:
+					try:
+						user = update['message']['from']['username']
+					except:
+						user = str(update['message']['from']['id'])
+					message = update['message']['text']
+					message = message.replace("@"+self.username, "")
+					c_id = update['message']['chat']['id']
+					print(str(last_update)+": "+user)
+					if message.startswith("/"): # Message is a command
+						command = Command(user, message, c_id)
+						if command.get_command() in commands:
+							try:
+								commands[command.get_command()](command)
+							except Exception as e:
+								send_message(c_id, "I'm afraid I can't do that.\n'"+str(e)+"'")
+					elif message.startswith("silence"):
+						if "reply_to_message" in update['message']:
+							reply = update['message']["reply_to_message"]
+							u_id = reply["from"]["id"]
+							name = reply["from"]["first_name"]
+							timeout_member(c_id, u_id, name, 5)
+					else: # Message is normal
+						#reply = triggers.parse(message)
+						continue
+						if reply:
+							send_message(c_id, reply)
+			time.sleep(self.sleep_interval)
+
+bot = Bot(Config("config.txt"))
 
 dice_format_pattern = re.compile("\d+d\d+", re.IGNORECASE)
 
-triggers = Trigger(bot_dir+"/triggers")
-print("TRIGGERS")
-print(triggers.get_keys())
-
-pasta = Pasta(bot_dir+"/pasta")
-print("\nPASTA:")
-print(pasta.get_keys())
-
-char_man = CharacterManager(bot_dir+"/characters")
-print("\nCHARACTERS:")
-print(char_man.get_users())
+# triggers = Trigger(bot_dir+"/triggers")
+# print("TRIGGERS")
+# print(triggers.get_keys())
+#
+# pasta = Pasta(bot_dir+"/pasta")
+# print("\nPASTA:")
+# print(pasta.get_keys())
+#
+# char_man = CharacterManager(bot_dir+"/characters")
+# print("\nCHARACTERS:")
+# print(char_man.get_users())
 
 def send_message(id, message):
 	requests.get(url + 'sendMessage', params=dict(chat_id=id, text=message))
@@ -239,36 +287,4 @@ commands = {
 	"/give_item": give_item
 }
 
-last_update = 0
-while True:
-	get_updates = json.loads(requests.get(url + 'getUpdates', params=dict(offset=(last_update+1))).text)
-
-	for update in get_updates['result']:
-		last_update = update['update_id']
-		if 'message' in update and 'text' in update['message']:
-			try:
-				user = update['message']['from']['username']
-			except:
-				user = str(update['message']['from']['id'])
-			message = update['message']['text']
-			message = message.replace("@"+bot_username, "")
-			c_id = update['message']['chat']['id']
-			print(str(last_update)+": "+user)
-			if message.startswith("/"): # Message is a command
-				command = Command(user, message, c_id)
-				if command.get_command() in commands:
-					try:
-						commands[command.get_command()](command)
-					except Exception as e:
-						send_message(c_id, "I'm afraid I can't do that.\n'"+str(e)+"'")
-			elif message.startswith("silence"):
-				if "reply_to_message" in update['message']:
-					reply = update['message']["reply_to_message"]
-					u_id = reply["from"]["id"]
-					name = reply["from"]["first_name"]
-					timeout_member(c_id, u_id, name, 5)
-			else: # Message is normal
-				reply = triggers.parse(message)
-				if reply:
-					send_message(c_id, reply)
-	time.sleep(config.get_sleep_interval())
+bot.start()

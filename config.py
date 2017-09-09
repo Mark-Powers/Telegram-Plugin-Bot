@@ -23,7 +23,12 @@ class Config:
 			try:
 				self.__sleep_time = int(re.search("sleep_interval=\"(.+)\"", config).group(1))
 			except:
-				self.__sleep_time = 2				
+				self.__sleep_time = 2
+
+			try:
+				self.__plugins = re.search("plugins=\[(.+)\]", config).group(1).split(",")
+			except:
+				self.__plugins = 2
 
 	def get_bot_dir(self):
 		return self.__bot_dir
@@ -36,3 +41,6 @@ class Config:
 
 	def get_sleep_interval(self):
 		return self.__sleep_time
+
+	def get_plugins(self):
+		return self.__plugins
