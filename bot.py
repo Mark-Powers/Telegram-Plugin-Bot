@@ -10,7 +10,6 @@ from config import Config
 from trigger import Trigger
 from plugin import Plugin
 
-
 class Bot:
 	def __init__(self, config):
 		self.username = config.bot_username
@@ -65,10 +64,6 @@ class Bot:
 
 	def send_message(self, id, message):
 		requests.get(self.base_url + 'sendMessage', params=dict(chat_id=id, text=message))
-
-bot = Bot(Config("config.txt"))
-
-dice_format_pattern = re.compile("\d+d\d+", re.IGNORECASE)
 
 # triggers = Trigger(bot_dir+"/triggers")
 # print("TRIGGERS")
@@ -148,5 +143,7 @@ commands = {
 	"/listtrigger": list_trigger,
 	"/applause": send_applause,
 }
+
+bot = Bot(Config("config.txt"))
 
 bot.start()

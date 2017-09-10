@@ -1,5 +1,6 @@
 import random
 import os
+import re
 
 from plugin import Plugin
 
@@ -29,7 +30,6 @@ class Roll():
 
 	def sum(self):
 		return sum(self.rolls)
-
 
 class Character:
 	def __init__(self, name):
@@ -90,13 +90,13 @@ class CharacterManager:
 						elif "=" in line:
 							parts = line.split("=")
 							char.set_stat(parts[0], int(parts[1]))
-					self.__characters[file[:-4]] = char
+					self.characters[file[:-4]] = char
 
 	def add_character(self, user, char):
 		self.characters[user] = char
 
 	def has_character(self, user):
-		return user in self.__characters
+		return user in self.characters
 
 	def get_character(self, user):
 		return self.characters[user]
@@ -106,7 +106,6 @@ class CharacterManager:
 
 	def save_char(self, user):
 		self.characters[user].write_to_file(self.dir+"/"+user+".txt")
-
 
 class RPG_Plugin(Plugin):
 	def __init__(self, data_dir):
@@ -136,12 +135,12 @@ class RPG_Plugin(Plugin):
 	def get_help(self):
 		return "/roll <dice_expression>"
 
-	def roll_dice(command):
+	def roll_dice(self, command):
 		user = command.mention if command.mention else command.user.username
 		rolls = []
 		constant = []
 		mods = []
-		parts = command.get_args().split("+")
+		parts = command.args.split("+")
 		for part in parts:
 			if "-" in part:
 				try:
@@ -152,7 +151,7 @@ class RPG_Plugin(Plugin):
 				except:
 					pass # part is just a plain negative number
 			part = part.strip()
-			if dice_format_pattern.search(part):
+			if re.search("\d+[dD]\d+",part):
 				rolls.append(Roll(part))
 			elif part.replace("-","",1).isdigit():
 				constant.append(int(part))
@@ -172,49 +171,49 @@ class RPG_Plugin(Plugin):
 			total += c
 			result += "\n + " + str(c)
 		result += "\n = " + str(total)
-		send_message(command.get_id(), result)
+		return result
 
-	def show_stats(command):
-		user = command.get_sender()
-		if command.get_mention():
-			user = command.get_mention()
+	def show_stats(self, command):
+		user = command.user.username
+		if command.mention:
+			user = command.mention
 		if self.manager.has_character(user):
 			return self.manager.get_character(user).stat_string()
 		else:
 			return user + " does not have a character!"
 
-	def show_inventory(command):
-		user = command.get_sender()
-		if command.get_mention():
-			user = command.get_mention()
+	def show_inventory(self, command):
+		user = command.user.username
+		if command.mention:
+			user = command.mention
 		if self.manager.has_character(user):
 			return self.manager.get_character(user).inventory_string()
 		else:
 			return user + " does not have a character!"
 
-	def set_stat(command):
-		user = command.get_sender()
-		if command.get_mention():
-			user = command.get_mention()
+	def set_stat(self, command):
+		user = command.user.username
+		if command.mention:
+			user = command.mention
 		if self.manager.has_character(user):
 			# TODO could stats be multiple words?
-			parts = command.get_args().split(" ")
+			parts = command.args.split(" ")
 			if len(parts)==2:
 				self.manager.get_character(user).set_stat(parts[0], int(parts[1]))
 				self.manager.save_char(user)
-				return show_stats(command)
+				return self.show_stats(command)
 			else:
 				return "Invalid syntax arguments!"
 		else:
 			return user + " does not have a character!"
 
-	def give_item(command):
-		user = command.get_sender()
-		if command.get_mention():
-			user = command.get_mention()
+	def give_item(self, command):
+		user = command.user.username
+		if command.mention:
+			user = command.mention
 		if self.manager.has_character(user):
-			if command.get_args():
-				parts = command.get_args().split("|")
+			if command.args:
+				parts = command.args.split("|")
 				item = parts[0].strip()
 				amount = 1
 				desc = "no description"
@@ -224,16 +223,16 @@ class RPG_Plugin(Plugin):
 					desc = parts[2].strip()
 				self.manager.get_character(user).give_item(item, amount, desc)
 				self.manager.save_char(user)
-				return show_inventory(command)
+				return self.show_inventory(command)
 			else:
 				return "Requires at least one argument!"
 		else:
 			return user + " does not have a character!"
 
-	def create_character(command):
-		if message.get_args():
-			self.manager.add_character(message.get_sender(), Character(message))
-			self.manager.save_char(message.get_sender())
-			return "Created character '" + message.get_args() + "'' for player " + user
+	def create_character(self, command):
+		if command.args:
+			self.manager.add_character(command.user.username, Character(command.args))
+			self.manager.save_char(command.user.username)
+			return "Created character '" + command.args + "'' for player " + command.user.first_name
 		else:
 			return "Name your character!"
