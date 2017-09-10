@@ -23,46 +23,52 @@ class Bot:
 
 		self.plugins = []
 		for plugin in config.get_plugins():
-			print(plugin)
 			mod = __import__("plugins." + plugin)
-			self.plugins.append(eval("mod."+plugin+".load()"))
-		print(self.plugins)
+			self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\")"))
 
 	def start(self):
 		last_update = 0
-		while True:
-			get_updates = json.loads(requests.get(self.base_url + 'getUpdates', params=dict(offset=(last_update+1))).text)
+		commands = {} # Map of "command" to Plugin
+		for plugin in self.plugins:
+			for command in plugin.get_commands():
+				commands[command] = plugin
 
-			for update in get_updates['result']:
-				last_update = update['update_id']
-				if 'message' in update and 'text' in update['message']:
-					try:
-						user = update['message']['from']['username']
-					except:
-						user = str(update['message']['from']['id'])
-					message = update['message']['text']
-					message = message.replace("@"+self.username, "")
-					c_id = update['message']['chat']['id']
-					print(str(last_update)+": "+user)
-					if message.startswith("/"): # Message is a command
-						command = Command(user, message, c_id)
-						if command.get_command() in commands:
-							try:
-								commands[command.get_command()](command)
-							except Exception as e:
-								send_message(c_id, "I'm afraid I can't do that.\n'"+str(e)+"'")
-					elif message.startswith("silence"):
+		while True:
+			updates = self.get_updates(last_update)
+			#updates = json.loads(requests.get(self.base_url + 'getUpdates', params=dict(offset=(last_update+1))).text)
+			for update in updates["result"]:
+				last_update = update["update_id"]
+				if "message" in update:
+					message = Message(update["message"])
+					print(str(last_update)+": "+message.sent_from.username)
+					if message.is_command:
+						try:
+							print(commands.keys())
+							print(message.command.command)
+							response = commands[message.command.command].on_command(message.command)
+							self.send_message(message.chat.id, response)
+						except KeyError:
+							self.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
+						except Exception as e:
+							self.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
+					elif message.text.startswith("silence"):
 						if "reply_to_message" in update['message']:
 							reply = update['message']["reply_to_message"]
 							u_id = reply["from"]["id"]
 							name = reply["from"]["first_name"]
 							timeout_member(c_id, u_id, name, 5)
 					else: # Message is normal
-						#reply = triggers.parse(message)
+						reply = ""#triggers.parse(message)
 						continue
 						if reply:
-							send_message(c_id, reply)
+							self.send_message(message.chat.id, reply)
 			time.sleep(self.sleep_interval)
+
+	def get_updates(self, last_update):
+		return json.loads(requests.get(self.base_url + 'getUpdates', params=dict(offset=(last_update+1))).text)
+
+	def send_message(self, id, message):
+		requests.get(self.base_url + 'sendMessage', params=dict(chat_id=id, text=message))
 
 bot = Bot(Config("config.txt"))
 
@@ -79,9 +85,6 @@ dice_format_pattern = re.compile("\d+d\d+", re.IGNORECASE)
 # char_man = CharacterManager(bot_dir+"/characters")
 # print("\nCHARACTERS:")
 # print(char_man.get_users())
-
-def send_message(id, message):
-	requests.get(url + 'sendMessage', params=dict(chat_id=id, text=message))
 
 def restrict_chat_member(id, u_id, name, state):
 	reply = requests.get(url + "restrictChatMember", params=dict(chat_id=id, user_id=u_id, can_send_messages=state))
@@ -237,39 +240,41 @@ def create_character(command):
 		send_message(c_id, "Name your character!")
 
 class Command:
-	def __init__(self, sender, message, id):
-		message = message.strip()
-		if " " in message:
-			args_index = message.index(" ")
-		else:
-			args_index = len(message)
-		self.command = message[:args_index]
-		message = message[args_index+1:]
+	def __init__(self, message):
+		text = message.text[1:]
+		args_index = text.index(" ") if " " in text else len(text)
+		self.command = text[:args_index]
+		text = text[args_index+1:]
 
-		user_match = re.search("@(\w+)", message)
-		if user_match:
-			self.mention = user_match.group(1)
-		else:
-			self.mention = ""
-		message = message.replace("@"+user,"",1).strip()
-		self.args = message.strip()
-		self.sender = sender
-		self.id = id
+		user_match = re.search("@(\w+)", text)
+		self.mention = user_match.group(1) if user_match else ""
 
-	def get_sender(self):
-		return self.sender
+		#text = text.replace("@"+user,"",1).strip()
+		self.args = text.strip()
 
-	def get_id(self):
-		return self.id
+		self.chat = message.chat
+		self.user = message.sent_from
 
-	def get_command(self):
-		return self.command
+class User:
+	def __init__(self, user):
+		self.id = user["id"]
+		self.first_name = user["first_name"]
+		self.username = user["username"] if "username" in user else self.first_name
 
-	def get_mention(self):
-		return self.mention
+class Chat:
+	def __init__(self, chat):
+		self.id = chat["id"]
+		self.type = chat["type"]
 
-	def get_args(self):
-		return self.args
+class Message:
+	def __init__(self, message):
+		self.date = message["date"]
+		self.sent_from = User(message["from"])
+		self.chat = Chat(message["chat"])
+		self.text = message["text"].strip() if "text" in message else ""
+		self.is_command = self.text.startswith("/")
+		if self.is_command:
+			self.command = Command(self)
 
 commands = {
 	"/newtrigger": add_trigger,

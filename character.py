@@ -11,7 +11,7 @@ class Character:
 			self.inventory[item] = (desc, self.inventory[item][1]+amount)
 		else:
 			self.inventory[item] = (desc, amount)
-	
+
 	def set_stat(self, stat, num):
 		self.stats[stat] = num
 
@@ -20,7 +20,7 @@ class Character:
 		for stat in self.stats.keys():
 			result += "\n" + stat + ": " + str(self.stats[stat])
 		return result
-	
+
 	def inventory_string(self):
 		result = self.name + ":"
 		for item in self.inventory.keys():
@@ -56,7 +56,7 @@ class CharacterManager:
 									char.give_item(group[0], int(group[1]), group[2])
 						elif "=" in line:
 							parts = line.split("=")
-							char.set_stat(parts[0], int(parts[1]))					
+							char.set_stat(parts[0], int(parts[1]))
 					self.__characters[file[:-4]] = char
 
 	def add_character(self, user, char):
@@ -73,4 +73,3 @@ class CharacterManager:
 
 	def save_char(self, user):
 		self.__characters[user].write_to_file(self.__char_directory+"/"+user+".txt")
-	

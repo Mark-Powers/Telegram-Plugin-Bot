@@ -1,12 +1,12 @@
 class Plugin:
-    def __init__(self):
+    def __init__(self, data_dir):
         pass
 
-    def on_command(command):
+    def on_command(self, command):
         return "This plugin has no commands!"
 
     def get_commands(self):
-        return []
+        return {}
 
     def get_name(self):
         return "Base Plugin"
