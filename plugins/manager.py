@@ -1,3 +1,5 @@
+import difflib
+
 from plugin import Plugin
 
 def load(data_dir, bot):
@@ -14,12 +16,19 @@ class Manager(Plugin):
 		elif command.command == "reload":
 			self.bot.load_plugins()
 			return "Plugins are reloaded!"
+		elif command.command == "help":
+			matches = difflib.get_close_matches(command.args, [x.get_name() for x in self.bot.plugins])
+			if matches:
+				for plugin in self.bot.plugins:
+					if plugin.get_name() == matches[0]:
+						return plugin.get_help()
+			return "I don't know that plugin!"
 
 	def get_commands(self):
-		return {"plugins", "reload"}
+		return {"plugins", "reload", "help"}
 
 	def get_name(self):
-		return "Pluging Manager"
+		return "Plugin Manager"
 
 	def get_help(self):
 		return "This plugin manages general plugins"
