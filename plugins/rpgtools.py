@@ -4,8 +4,8 @@ import re
 
 from plugin import Plugin
 
-def load(data_dir):
-	return RPG_Plugin(data_dir)
+def load(data_dir, bot):
+	return RPG_Plugin(data_dir, bot)
 
 class Roll():
 	def __init__(self, init_string):
@@ -108,7 +108,7 @@ class CharacterManager:
 		self.characters[user].write_to_file(self.dir+"/"+user+".txt")
 
 class RPG_Plugin(Plugin):
-	def __init__(self, data_dir):
+	def __init__(self, data_dir, bot):
 		self.dir = data_dir
 		self.manager = CharacterManager(self.dir+"/characters")
 

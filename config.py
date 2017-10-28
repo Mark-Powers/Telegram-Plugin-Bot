@@ -16,11 +16,6 @@ class Config:
 				self.bot_dir = os.path.abspath('')
 
 			try:
-				self.bot_username = re.search("bot_username=\"(.+)\"", config).group(1)
-			except:
-				self.bot_username = ""
-
-			try:
 				self.sleep_interval = int(re.search("sleep_interval=\"(.+)\"", config).group(1))
 			except:
 				self.sleep_interval = 2

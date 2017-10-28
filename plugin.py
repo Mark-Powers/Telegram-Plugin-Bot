@@ -1,5 +1,5 @@
 class Plugin:
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, bot):
         pass
 
     def on_message(self, message):
