@@ -12,17 +12,17 @@ class Manager(Plugin):
 
 	def on_command(self, command):
 		if command.command == "plugins":
-			return self.list_plugins()
+			return {"type":"message", "message": self.list_plugins()}
 		elif command.command == "reload":
 			self.bot.load_plugins()
-			return "Plugins are reloaded!"
+			return {"type":"message", "message": "Plugins are reloaded!"}
 		elif command.command == "help":
 			matches = difflib.get_close_matches(command.args, [x.get_name() for x in self.bot.plugins])
 			if matches:
 				for plugin in self.bot.plugins:
 					if plugin.get_name() == matches[0]:
-						return plugin.get_help()
-			return "I don't know that plugin!"
+						return {"type":"message", "message": plugin.get_help()}
+			return {"type":"message", "message": "I don't know that plugin!"}
 
 	def get_commands(self):
 		return {"plugins", "reload", "help"}

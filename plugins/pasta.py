@@ -37,12 +37,15 @@ class Pasta(Plugin):
 
 	def on_command(self, command):
 		if command.command == "pasta":
-			return self.get_pasta(command.args)
+			return {"type":"message", "message": self.get_pasta(command.args)}
 		elif command.command == "listpasta":
 			ret = "\n".join(list(self.pasta.keys()))
-			return ret if ret else "No pasta set!"
+			if ret:
+				return {"type":"message", "message": ret}
+			else:
+				 return {"type":"message", "message": "No pasta set!"}
 		elif command.command == "newpasta":
-			return self.add(command.args)
+			return {"type":"message", "message": self.add(command.args)}
 
 	def get_commands(self):
 		return {"pasta", "listpasta", "newpasta"}

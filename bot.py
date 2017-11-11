@@ -48,7 +48,10 @@ class Bot:
 					if message.is_command:
 						try:
 							response = commands[message.command.command].on_command(message.command)
-							self.send_message(message.chat.id, response)
+							if response["type"] == "message":
+								self.send_message(message.chat.id, response["message"])
+							elif response["type"] == "photo":
+								self.send_photo(message.chat.id, response["caption"], response["file_name"])
 						except KeyError:
 							self.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
 						except Exception as e:

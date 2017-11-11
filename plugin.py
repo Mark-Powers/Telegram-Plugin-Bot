@@ -6,7 +6,8 @@ class Plugin:
         return "This gets called per message when a plugin has access!"
 
     def on_command(self, command):
-        return "This gets called a command from this plugin is sent!"
+        return {"type": "message",
+                "mesasge": "This gets called a command from this plugin is sent!"}
 
     def get_commands(self):
         return {}
