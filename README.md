@@ -1,4 +1,4 @@
-# Telegram-Response-Bot
+# Telegram-Plugin-Bot
 A [telegram](https://telegram.org/) bot that supports plugins. This allows for
 creating bots with all sorts of functions without having to deal with much boiler
 plate code.
@@ -9,13 +9,5 @@ Requirements
   - [Requests](http://docs.python-requests.org/en/master/) module
 - Telegram Bot Token
   - Make sure to change the privacy settings to see all messages
-  - Create a configuration file named "config.txt" in the directory you are running the executable from. Options are written to it one per line as **option="value"**. Options are descibed below
-    - *token* - REQUIRED, where given value is your bot API token.
-    - *bot_dir* - The directory of where the *bot.py* file is. Again, optional but strongly recommended.
-    - *sleep_interval* - How often in seconds the bot checks for messages.
-    - *plugins* - Module (file) names from the `plugins` folder seperates with commands beginning and ending with braces, much like creating a list in python.
 
-Run *bot.by* using Python 3.
-
-### TODO ###
-- Allow for subtraction of dice notation items and stat items in roll formulas
+Run *bot.by* using Python 3. The first time it is a ran, you will be prompted to enter your bot's token, directory for the bot, sleep interval, and a list of plugins to load. This will be saved in `config.txt`.

@@ -6,7 +6,7 @@ import threading
 import os
 import imp
 
-from config import Config
+from config import Config, ConfigWizard
 from plugin import Plugin
 
 class Bot:
@@ -66,6 +66,12 @@ class Bot:
 	def send_message(self, id, message):
 		return requests.get(self.base_url + 'sendMessage', params=dict(chat_id=id, text=message))
 
+	def send_photo(self, id, message, file_name):
+	    files = {'photo': open(file_name, 'rb')}
+	    data = dict(chat_id=id, caption=message)
+	    return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
+
+
 class Command:
 	def __init__(self, message):
 		text = message.text[1:]
@@ -103,5 +109,11 @@ class Message:
 		if self.is_command:
 			self.command = Command(self)
 
-bot = Bot(Config("config.txt"))
+
+
+if os.path.exists("config.txt"):
+	conf = Config("config.txt")
+else:
+	conf = ConfigWizard("config.txt").conf
+bot = Bot(conf)
 bot.start()
