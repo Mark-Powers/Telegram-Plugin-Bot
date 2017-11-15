@@ -39,5 +39,5 @@ class Manager(Plugin):
 	def list_plugins(self):
 		string = ""
 		for plugin in self.bot.plugins:
-			string += ", '" + plugin.get_name()
-		return string[2:]+"'"
+			string += ", '" + plugin.get_name()+"'"
+		return string[2:]
