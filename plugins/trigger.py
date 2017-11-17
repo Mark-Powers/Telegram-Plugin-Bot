@@ -3,11 +3,11 @@ import random
 import re
 from plugin import Plugin
 
-def load(data_dir):
-	return Trigger(data_dir)
+def load(data_dir, bot):
+	return Trigger(data_dir, bot)
 
 class Trigger(Plugin):
-	def __init__(self, trigger_directory):
+	def __init__(self, trigger_directory, bot):
 		self.dir = trigger_directory
 		self.triggers = {}
 		if not os.path.exists(self.dir):
@@ -32,10 +32,13 @@ class Trigger(Plugin):
 
 	def on_command(self, command):
 		if command.command == "newtrigger":
-			return self.add(command)
+			return {"type": "message", "message": self.add(command)}
 		elif command.command == "listtrigger":
 			ret = "\n".join(list(self.triggers.keys()))
-			return ret if ret else "No triggers set!"
+			if ret:
+				return {"type": "message", "message": ret}
+			else:
+				return {"type": "message", "message": "No triggers set!"}
 
 	def get_commands(self):
 		return {"newtrigger", "listtrigger"}

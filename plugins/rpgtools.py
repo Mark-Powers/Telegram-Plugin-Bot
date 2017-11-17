@@ -4,8 +4,8 @@ import re
 
 from plugin import Plugin
 
-def load(data_dir):
-	return RPG_Plugin(data_dir)
+def load(data_dir, bot):
+	return RPG_Plugin(data_dir, bot)
 
 class Roll():
 	def __init__(self, init_string):
@@ -108,23 +108,23 @@ class CharacterManager:
 		self.characters[user].write_to_file(self.dir+"/"+user+".txt")
 
 class RPG_Plugin(Plugin):
-	def __init__(self, data_dir):
+	def __init__(self, data_dir, bot):
 		self.dir = data_dir
 		self.manager = CharacterManager(self.dir+"/characters")
 
 	def on_command(self, command):
 		if command.command == "r" or command.command == "roll":
-			return self.roll_dice(command)
+			return {"type": "message", "message": self.roll_dice(command)}
 		elif command.command == "create_character":
-			return self.create_character(command)
+			return {"type": "message", "message": self.create_character(command)}
 		elif command.command == "show_stats":
-			return self.show_stats(command)
+			return {"type": "message", "message": self.show_stats(command)}
 		elif command.command == "show_inventory":
-			return self.show_inventory(command)
+			return {"type": "message", "message": self.show_inventory(command)}
 		elif command.command == "set_stat":
-			return self.set_stat(command)
+			return {"type": "message", "message": self.set_stat(command)}
 		elif command.command == "give_item":
-			return self.give_item(command)
+			return {"type": "message", "message": self.give_item(command)}
 
 	def get_commands(self):
 		return {"r", "roll", "create_character", "show_stats", "show_inventory", "set_stat", "give_item"}

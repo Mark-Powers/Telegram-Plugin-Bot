@@ -2,11 +2,11 @@ import os
 import random
 from plugin import Plugin
 
-def load(data_dir):
-	return Pasta(data_dir)
+def load(data_dir, bot):
+	return Pasta(data_dir, bot)
 
 class Pasta(Plugin):
-	def __init__(self, data_dir):
+	def __init__(self, data_dir, bot):
 		self.dir = data_dir
 		self.pasta = {}
 		if not os.path.exists(self.dir):
@@ -37,12 +37,15 @@ class Pasta(Plugin):
 
 	def on_command(self, command):
 		if command.command == "pasta":
-			return self.get_pasta(command.args)
+			return {"type":"message", "message": self.get_pasta(command.args)}
 		elif command.command == "listpasta":
 			ret = "\n".join(list(self.pasta.keys()))
-			return ret if ret else "No pasta set!"
+			if ret:
+				return {"type":"message", "message": ret}
+			else:
+				 return {"type":"message", "message": "No pasta set!"}
 		elif command.command == "newpasta":
-			return self.add(command.args)
+			return {"type":"message", "message": self.add(command.args)}
 
 	def get_commands(self):
 		return {"pasta", "listpasta", "newpasta"}

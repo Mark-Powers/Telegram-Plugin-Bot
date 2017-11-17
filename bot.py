@@ -6,20 +6,25 @@ import threading
 import os
 import imp
 
-from config import Config
+from config import Config, ConfigWizard
 from plugin import Plugin
 
 class Bot:
 	def __init__(self, config):
-		self.username = config.bot_username
 		self.directory = config.bot_dir
 		self.base_url = "https://api.telegram.org/bot"+config.token+"/"
 		self.sleep_interval = config.sleep_interval
 
+		self.username = json.loads(requests.get(self.base_url + "getMe").text)["result"]["username"]
+
+		self.conf_plugins = config.plugins
+		self.load_plugins()
+
+	def load_plugins(self):
 		self.plugins = []
-		for plugin in config.plugins:
+		for plugin in self.conf_plugins:
 			mod = __import__("plugins." + plugin)
-			self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\")"))
+			self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", self)"))
 
 	def start(self):
 		last_update = 0
@@ -43,17 +48,14 @@ class Bot:
 					if message.is_command:
 						try:
 							response = commands[message.command.command].on_command(message.command)
-							self.send_message(message.chat.id, response)
+							if response["type"] == "message":
+								self.send_message(message.chat.id, response["message"])
+							elif response["type"] == "photo":
+								self.send_photo(message.chat.id, response["caption"], response["file_name"])
 						except KeyError:
 							self.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
 						except Exception as e:
 							self.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
-					# elif message.text.startswith("silence"):
-					# 	if "reply_to_message" in update['message']:
-					# 		reply = update['message']["reply_to_message"]
-					# 		u_id = reply["from"]["id"]
-					# 		name = reply["from"]["first_name"]
-					# 		timeout_member(c_id, u_id, name, 5)
 					else:
 						for plugin in message_plugins:
 							reply = plugin.on_message(message)
@@ -67,24 +69,11 @@ class Bot:
 	def send_message(self, id, message):
 		return requests.get(self.base_url + 'sendMessage', params=dict(chat_id=id, text=message))
 
-def restrict_chat_member(id, u_id, name, state):
-	reply = requests.get(url + "restrictChatMember", params=dict(chat_id=id, user_id=u_id, can_send_messages=state))
-	if reply.ok:
-		if state:
-			send_message(id, name + " can talk again.")
-		else:
-			send_message(id, name + " has been silenced!")
-	else:
-		send_message(id, "I'm afraid I can't do that.\n" + str(reply.status_code))
+	def send_photo(self, id, message, file_name):
+	    files = {'photo': open(file_name, 'rb')}
+	    data = dict(chat_id=id, caption=message)
+	    return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
 
-def timeout_member(id, u_id, name, minutes):
-	restrict_chat_member(id, u_id, name, False)
-	t = threading.Timer(minutes*60, restrict_chat_member, [id, u_id, name, True])
-	t.start()
-
-def send_applause(command):
-	for i in range(0,3):
-		send_message(command.get_id(), u"😎//")
 
 class Command:
 	def __init__(self, message):
@@ -123,10 +112,11 @@ class Message:
 		if self.is_command:
 			self.command = Command(self)
 
-commands = {
-	"/applause": send_applause,
-}
 
-bot = Bot(Config("config.txt"))
 
+if os.path.exists("config.txt"):
+	conf = Config("config.txt")
+else:
+	conf = ConfigWizard("config.txt").conf
+bot = Bot(conf)
 bot.start()
