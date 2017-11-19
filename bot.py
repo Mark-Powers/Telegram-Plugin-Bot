@@ -14,9 +14,7 @@ class Bot:
 		self.directory = config.bot_dir
 		self.base_url = "https://api.telegram.org/bot"+config.token+"/"
 		self.sleep_interval = config.sleep_interval
-
 		self.username = json.loads(requests.get(self.base_url + "getMe").text)["result"]["username"]
-
 		self.conf_plugins = config.plugins
 		self.load_plugins()
 
