@@ -39,10 +39,29 @@ class Stats(Plugin):
 
 	def plot(self):
 		data = np.genfromtxt(self.dir+"/log.csv", delimiter=',', names=['date', 'name', 'length'])
+		chatMap = {}
+		for x in data:
+			date = np.int64(np.int64(x[0])/(60*60*24))
+			if date in chatMap:
+				#print("same date!")
+				chatMap[date] += x[2]
+			else:
+				chatMap[date] = x[2]
+		#print(chatMap)
+		#[(np.int64(np.int64(x[0])/3), x[1], x[2]) for x in data]
+
+		data = np.array(list(chatMap.items()), dtype=[('date', '<i8'), ('length', '<f8')])
+		'''
+		print(data['length'])
+		print(len(data['length']))
+		plt.bar(len(data['length']), data['length'], .5, color="blue")
+		fig = plt.gcf()
+		'''
 		fig = plt.figure()
 		ax1 = fig.add_subplot(111)
 		ax1.set_title("Activity")
 		ax1.set_xlabel('Date')
 		ax1.set_ylabel('length')
-		ax1.plot(data['date'], data['length'], color='r', label='the data')
+		ax1.plot(data['date'], data['length'], 'ro-')
+		#plt.plot([1,2,3,4], [1,4,9,16], 'ro')
 		fig.savefig(self.dir+"/output.jpg")
