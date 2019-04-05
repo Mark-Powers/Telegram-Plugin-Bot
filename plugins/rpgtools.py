@@ -59,9 +59,9 @@ class Character:
     # Adds an item to this characters inventory
     def give_item(self, item, amount, desc):
         if item in self.inventory:
-            self.inventory[item] = (desc, self.inventory[item][1] + amount)
+            self.inventory[item] = [desc, self.inventory[item][1] + amount]
         else:
-            self.inventory[item] = (desc, amount)
+            self.inventory[item] = [desc, amount]
 
     # Sets a stat to this characters inventory
     def set_stat(self, stat, num):
@@ -95,6 +95,17 @@ class Character:
         if item_name in self.inventory.keys():
             del self.inventory[item_name]
             return True
+        return False
+
+    def consume_item(self, item_name):
+        if item_name in self.inventory.keys():
+            if self.inventory[item_name][1] > 1:
+                self.inventory[item_name][1] -= 1
+                return True
+            elif self.inventory[item_name][1] == 1:
+                del self.inventory[item_name]
+                return True
+            return False
         return False
 
     def remove_stat(self, stat_name):
@@ -182,6 +193,7 @@ class RPG_Plugin(Plugin):
     def __init__(self, data_dir, bot):
         self.dir = data_dir
         self.manager = CharacterManager(self.dir)
+        self.dm = ["Klawk"]
 
     def on_command(self, command):
         if command.command == "r" or command.command == "roll":
@@ -210,28 +222,37 @@ class RPG_Plugin(Plugin):
             return {"type": "message", "message": self.rm_char(command)}
         elif command.command == "chars":
             return {"type": "message", "message": self.chars()}
+        elif command.command == "consume":
+            return {"type": "message", "message": self.consume_item(command)}
+        elif command.command == "set_dm":
+            return {"type": "message", "message": self.set_dm(command)}
+        elif command.command == "rm_dm":
+            return {"type": "message", "message": self.rm_dm(command)}
 
     def get_commands(self):
         return {"r", "roll", "create_character", "show_stats", "show_inventory", "show_abilities", "set_stat",
-                "give_item", "give_ability", "rm_stat", "rm_item", "rm_ability", "rm_char", "chars"}
+                "give_item", "give_ability", "rm_stat", "rm_item", "rm_ability", "rm_char", "chars", "consume", "set_dm", "rm_dm"}
 
     def get_name(self):
         return "RPG Tools"
 
     def get_help(self):
-        return "/roll <dice_expression>" \
-               "/create_character <name>" \
-               "/show_stats <char>" \
-               "/show_inventory <char>" \
-               "/show_abilities <char>" \
-               "/set_stat <char>|<stat>|<amount>" \
-               "/give_item <char>|<item>|<description>|<quantity>" \
-               "/give_ability <char>|<ability>|<description>" \
-               "/rm_stat <char>|<stat>" \
-               "/rm_item <char>|<item>" \
-               "/rm_ability <char>|<ability>" \
-               "/rm_char <char>" \
-               "/chars"
+        return "/roll <dice_expression>\n" \
+               "/create_character <name>\n" \
+               "/show_stats <char>\n" \
+               "/show_inventory <char>\n" \
+               "/show_abilities <char>\n" \
+               "/set_stat <char>,<stat>,<amount>\n" \
+               "/give_item <char>,<item>,<description>,<quantity>\n" \
+               "/give_ability <char>,<ability>,<description>\n" \
+               "/rm_stat <char>,<stat>\n" \
+               "/rm_item <char>,<item>\n" \
+               "/rm_ability <char>,<ability>\n" \
+               "/rm_char <char>\n" \
+               "/chars\n" \
+               "/consume <char>,<item>\n" \
+               "/set_dm <user>\n" \
+               "/rm_dm <user>\n" \
 
     def roll_dice(self, command):
         user = command.mention if command.mention else command.user.username
@@ -277,7 +298,7 @@ class RPG_Plugin(Plugin):
         user = command.user.username
         char = command.args
 
-        if self.manager.has_character(user, char):
+        if self.manager.has_character(user, char) or user in self.dm:
             return self.manager.get_character(char).stat_string()
         return user + " did not create that character!"
 
@@ -285,7 +306,7 @@ class RPG_Plugin(Plugin):
         user = command.user.username
         char = command.args
 
-        if self.manager.has_character(user, char):
+        if self.manager.has_character(user, char) or user in self.dm:
             return self.manager.get_character(char).inventory_string()
         return user + " did not create that character!"
 
@@ -293,18 +314,18 @@ class RPG_Plugin(Plugin):
         user = command.user.username
         char = command.args
 
-        if self.manager.has_character(user, char):
+        if self.manager.has_character(user, char) or user in self.dm:
             return self.manager.get_character(char).ability_string()
         return user + " did not create that character!"
 
     def set_stat(self, command):
         user = command.user.username
-        parts = command.args.split("|")
+        parts = command.args.split(",")
 
         if len(parts) == 3:
             char = parts[0]
 
-            if self.manager.has_character(user, char):
+            if self.manager.has_character(user, char) or user in self.dm:
                 self.manager.get_character(char).set_stat(parts[1].strip(), int(parts[2].strip()))
                 self.manager.save_char()
                 return self.manager.get_character(char).stat_string()
@@ -314,13 +335,13 @@ class RPG_Plugin(Plugin):
 
     def give_item(self, command):
         user = command.user.username
-        parts = command.args.split("|")
+        parts = command.args.split(",")
 
         if len(parts) == 4:
             char = parts[0]
 
             # Format /give_item <char>|<name>|<description>|<quantity>
-            if self.manager.has_character(user, char):
+            if self.manager.has_character(user, char) or user in self.dm:
                 item = parts[1].strip()
                 desc = parts[2].strip()
                 amount = int(parts[3].strip())
@@ -334,13 +355,13 @@ class RPG_Plugin(Plugin):
 
     def give_ability(self, command):
         user = command.user.username
-        parts = command.args.split("|")
+        parts = command.args.split(",")
 
         if len(parts) == 3:
             char = parts[0]
 
             # Format /give_ability <char>|<name>|<description>
-            if self.manager.has_character(user, char):
+            if self.manager.has_character(user, char) or user in self.dm:
                 name = parts[1].strip()
                 desc = parts[2].strip()
 
@@ -353,12 +374,12 @@ class RPG_Plugin(Plugin):
 
     def rm_stat(self, command):
         user = command.user.username
-        parts = command.args.split("|")
+        parts = command.args.split(",")
 
         if len(parts) == 2:
             char = parts[0]
 
-            if self.manager.has_character(user, char):
+            if self.manager.has_character(user, char) or user in self.dm:
                 self.manager.get_character(char).remove_stat(parts[1])
                 self.manager.save_char()
                 return self.manager.get_character(char).stat_string()
@@ -368,12 +389,12 @@ class RPG_Plugin(Plugin):
 
     def rm_item(self, command):
         user = command.user.username
-        parts = command.args.split("|")
+        parts = command.args.split(",")
 
         if len(parts) == 2:
             char = parts[0]
 
-            if self.manager.has_character(user, char):
+            if self.manager.has_character(user, char) or user in self.dm:
                 self.manager.get_character(char).remove_item(parts[1])
                 self.manager.save_char()
                 return self.manager.get_character(char).inventory_string()
@@ -383,12 +404,12 @@ class RPG_Plugin(Plugin):
 
     def rm_ability(self, command):
         user = command.user.username
-        parts = command.args.split("|")
+        parts = command.args.split(",")
 
         if len(parts) == 2:
             char = parts[0]
 
-            if self.manager.has_character(user, char):
+            if self.manager.has_character(user, char) or user in self.dm:
                 self.manager.get_character(char).remove_ability(parts[1])
                 self.manager.save_char()
                 return self.manager.get_character(char).ability_string()
@@ -424,3 +445,40 @@ class RPG_Plugin(Plugin):
             return "Created character '" + command.args + "'' for player " + command.user.first_name
         else:
             return "Invalid argument syntax! /create_character <name>"
+
+    def consume_item(self, command):
+        user = command.user.username
+        parts = command.args.split(",")
+
+        if len(parts) == 2:
+            char = parts[0]
+
+            if self.manager.has_character(user, char) or user in self.dm:
+                self.manager.get_character(char).consume_item(parts[1])
+                self.manager.save_char()
+                return self.manager.get_character(char).inventory_string()
+            return user + " did not create that character!"
+        else:
+            return "Invalid argument syntax! /rm_item <char>|<item>"
+
+    def set_dm(self, command):
+        user = command.user.username
+        new_dm = command.args
+
+        if user in self.dm:
+            if not new_dm in self.dm:
+                self.dm.append(new_dm)
+                return "Added {} to DM list".format(new_dm)
+            return "{} is already on the DM list".format(new_dm)
+        return "Sorry, you must already be a DM to use this command..."
+
+    def rm_dm(self, command):
+        user = command.user.username
+        bad_dm = command.args
+
+        if user in self.dm:
+            if bad_dm in self.dm:
+                self.dm.remove(bad_dm)
+                return "Removed {} from DM list".format(bad_dm)
+            return "{} is not on the DM list".format(bad_dm)
+        return "Sorry, you must already be a DM to use this command..."
