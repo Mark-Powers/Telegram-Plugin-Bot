@@ -20,6 +20,7 @@ class Bot:
 
 	def load_plugins(self):
 		self.plugins = []
+
 		for plugin in self.conf_plugins:
 			mod = __import__("plugins." + plugin)
 			self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", self)"))
@@ -28,24 +29,30 @@ class Bot:
 		last_update = 0
 		commands = {} # Map of "command" to Plugin
 		message_plugins = []
+
 		for plugin in self.plugins:
 			for command in plugin.get_commands():
 				commands[command] = plugin
 			if plugin.has_message_access():
 				message_plugins.append(plugin)
+
 		print("Commands:\n"+str(list(commands.keys())))
 		print("Listeners:\n"+str(message_plugins))
+
 		while True:
 			updates = self.get_updates(last_update)
 			#updates = json.loads(requests.get(self.base_url + 'getUpdates', params=dict(offset=(last_update+1))).text)
 			for update in updates["result"]:
 				last_update = update["update_id"]
+
 				if "message" in update:
 					message = Message(update["message"])
 					print(str(last_update)+": "+message.sent_from.username)
+
 					if message.is_command:
 						try:
 							response = commands[message.command.command].on_command(message.command)
+
 							if response["type"] == "message":
 								self.send_message(message.chat.id, response["message"])
 							elif response["type"] == "photo":
@@ -57,6 +64,7 @@ class Bot:
 					else:
 						for plugin in message_plugins:
 							reply = plugin.on_message(message)
+
 							if reply:
 								self.send_message(message.chat.id, reply)
 			time.sleep(self.sleep_interval)
@@ -70,6 +78,7 @@ class Bot:
 	def send_photo(self, id, message, file_name):
 	    files = {'photo': open(file_name, 'rb')}
 	    data = dict(chat_id=id, caption=message)
+
 	    return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
 
 
@@ -77,15 +86,12 @@ class Command:
 	def __init__(self, message):
 		text = message.text[1:]
 		args_index = text.index(" ") if " " in text else len(text)
-		self.command = text[:args_index]
 		text = text[args_index+1:]
-
 		user_match = re.search("@(\w+)", text)
+		
+		self.command = text[:args_index]
 		self.mention = user_match.group(1) if user_match else ""
-
-		#text = text.replace("@"+user,"",1).strip()
 		self.args = text.strip()
-
 		self.chat = message.chat
 		self.user = message.sent_from
 
