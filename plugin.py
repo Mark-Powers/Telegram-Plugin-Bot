@@ -28,6 +28,12 @@ class Plugin:
     has_message_access()
         Returns a boolean: return True if this plugin should receive every message sent to the bot.
         If enabled, the on_message(message) method will be called within this plugin with every receiving message
+
+    enable()
+        Called when the plugin is enabled or reenabled by a user
+
+    disable()
+        Called when the plugin is disabled by a user
     """
 
     def __init__(self, data_dir, bot):
@@ -101,3 +107,23 @@ class Plugin:
         """
 
         return False
+
+    @abstractmethod
+    def enable(self):
+        """
+        Called when a plugin is enabled or reenabled
+        
+        Allows for the plugin creator to rerun logic or resetup data sources
+        """
+        
+        pass
+
+    @abstractmethod
+    def disable(self):
+        """
+        Called when a plugin is disabled
+        
+        Allows for the plugin creator to free up resources and gracefully handle shutdown
+        """
+
+        pass
