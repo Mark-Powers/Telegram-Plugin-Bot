@@ -5,6 +5,7 @@ import time
 import threading
 import os
 import imp
+import importlib
 
 from config import Config, ConfigWizard
 from command_wrappers import Command, User, Chat, Message
@@ -23,7 +24,7 @@ class Bot:
 		self.plugins = []
 
 		for plugin in self.conf_plugins:
-			mod = __import__("plugins." + plugin)
+			importlib.import_module("plugins." + plugin)
 			self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", self)"))
 
 	def start(self):
