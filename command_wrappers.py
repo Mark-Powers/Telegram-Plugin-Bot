@@ -1,3 +1,5 @@
+import re
+
 class Command:
 	"""
 	Class containing information on the command receieved in a Telegram message.
