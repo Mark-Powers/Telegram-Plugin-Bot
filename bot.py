@@ -5,11 +5,10 @@ import time
 import threading
 import os
 import imp
-import importlib
 
 from config import Config, ConfigWizard
 from command_wrappers import Command, User, Chat, Message
-from plugin import Plugin
+from plugin_manager import PluginManager
 
 class Bot:
 	def __init__(self, config):
@@ -17,29 +16,13 @@ class Bot:
 		self.base_url = "https://api.telegram.org/bot"+config.token+"/"
 		self.sleep_interval = config.sleep_interval
 		self.username = json.loads(requests.get(self.base_url + "getMe").text)["result"]["username"]
-		self.conf_plugins = config.plugins
-		self.load_plugins()
-
-	def load_plugins(self):
-		self.plugins = []
-
-		for plugin in self.conf_plugins:
-			importlib.import_module("plugins." + plugin)
-			self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", self)"))
+		self.plugin_manager = PluginManager(config, self)
 
 	def start(self):
 		last_update = 0
-		commands = {} # Map of "command" to Plugin
-		message_plugins = []
 
-		for plugin in self.plugins:
-			for command in plugin.get_commands():
-				commands[command] = plugin
-			if plugin.has_message_access():
-				message_plugins.append(plugin)
-
-		print("Commands:\n"+str(list(commands.keys())))
-		print("Listeners:\n"+str(message_plugins))
+		print(self.plugin_manager.list_commands())
+		print(self.plugin_manager.list_listeners())
 
 		while True:
 			updates = self.get_updates(last_update)
@@ -53,7 +36,7 @@ class Bot:
 
 					if message.is_command:
 						try:
-							response = commands[message.command.command].on_command(message.command)
+							response = self.plugin_manager.process_plugin(self, message)
 
 							if response["type"] == "message":
 								self.send_message(message.chat.id, response["message"])
@@ -64,11 +47,7 @@ class Bot:
 						except Exception as e:
 							self.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
 					else:
-						for plugin in message_plugins:
-							reply = plugin.on_message(message)
-
-							if reply:
-								self.send_message(message.chat.id, reply)
+						self.plugin_manager.process_message(self, message)
 			time.sleep(self.sleep_interval)
 
 	def get_updates(self, last_update):
