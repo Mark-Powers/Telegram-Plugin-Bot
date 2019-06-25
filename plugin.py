@@ -40,6 +40,8 @@ class Plugin:
         """
         Main method of the plugin where it is given a reference to its directory and to the bot itself
 
+        ...
+
         Parameters
         ----------
         data_dir: str
@@ -58,6 +60,8 @@ class Plugin:
         
         Returns a string that represents a response to the received message. Return "" for no response.
 
+        ...
+
         Parameters
         ----------
         message: str
@@ -75,6 +79,8 @@ class Plugin:
         Valid types include the following:
             {"type": "message", "message": "Some message string here"}
             {"type": "photo", "caption": "Photo caption here", "file_name": "filename here"}
+
+        ...
 
         Parameters
         ----------
