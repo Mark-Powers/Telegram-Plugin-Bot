@@ -37,6 +37,18 @@ class Plugin:
     """
 
     def __init__(self, data_dir, bot):
+        """
+        Main method of the plugin where it is given a reference to its directory and to the bot itself
+
+        Parameters
+        ----------
+        data_dir: str
+            A path to the recommended directory to store data for your plugin
+
+        bot: Bot
+            A reference to the singleton Bot object that acts as the controller bridge between plugins and Telegram
+        """
+
         pass
 
     @abstractmethod
