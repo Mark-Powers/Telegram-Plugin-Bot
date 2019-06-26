@@ -37,6 +37,12 @@ class Stats(Plugin):
 		with open(self.dir+"/log.csv", 'a') as f:
 			f.write(",".join((str(message.date), message.sent_from.username, str(len(message.text))))+"\n")
 
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass
+
 	def plot(self):
 		data = np.genfromtxt(self.dir+"/log.csv", delimiter=',', names=['date', 'name', 'length'])
 		chatMap = {}

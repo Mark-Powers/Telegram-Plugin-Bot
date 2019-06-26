@@ -71,3 +71,9 @@ class Doge(Plugin):
 	def on_message(self, message):
 		self.words.extend(message.text.split(" "))
 		return ""
+
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass

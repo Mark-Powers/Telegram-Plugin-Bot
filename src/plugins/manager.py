@@ -41,3 +41,12 @@ class Manager(Plugin):
 		for plugin in self.bot.plugins:
 			string += ", '" + plugin.get_name()+"'"
 		return string[2:]
+
+	def on_message(self, message):
+		pass
+
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass

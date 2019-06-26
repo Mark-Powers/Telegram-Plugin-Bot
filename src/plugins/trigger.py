@@ -52,6 +52,11 @@ class Trigger(Plugin):
 	def has_message_access(self):
 		return True
 
+	def enable(self):
+		pass
+	
+	def disable(self):
+
 	def add(self, command):
 		parts = command.args.splitlines()
 		if len(parts) > 1 and parts[0]:

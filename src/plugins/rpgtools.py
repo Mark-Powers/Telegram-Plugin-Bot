@@ -254,6 +254,18 @@ class RPG_Plugin(Plugin):
                "/set_dm <user>\n" \
                "/rm_dm <user>\n" \
 
+    def on_message(self, message):
+        pass
+    
+    def has_message_access(self):
+        return False
+
+    def enable(self):
+        pass
+
+    def disable(self):
+        pass
+
     def roll_dice(self, command):
         user = command.mention if command.mention else command.user.username
         rolls = []

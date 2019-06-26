@@ -55,3 +55,15 @@ class Pasta(Plugin):
 
 	def get_help(self):
 		return "/pasta <name (optional)>"
+
+	def on_message(self, message):
+		pass
+
+	def has_message_access(self):
+		return False
+	
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass
