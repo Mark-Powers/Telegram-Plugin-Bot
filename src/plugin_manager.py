@@ -1,5 +1,4 @@
 import importlib
-import imp
 
 from plugin import Plugin
 
@@ -87,7 +86,7 @@ class PluginManager:
 
         for plugin in self.config_plugins:
             if not self.imported:
-                mod = __import__("plugins." + plugin)
+                mod = importlib.__import__("plugins." + plugin)
             else:
                 importlib.reload("plugins." + plugin)
             self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", bot)"))
