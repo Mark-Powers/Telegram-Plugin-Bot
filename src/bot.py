@@ -21,6 +21,21 @@ class Bot:
 	start()
 		Starts the bot where it will check for updates received from Telegram and send replies based on Plugins and Messages.
 
+	reload_plugins()
+		Reloads all plugins managed in self.plugin_manager, incorporating new changes made
+
+	enable_plugin(plugin_name)
+		Enables a plugin with a specific name
+
+	disable_plugin(plugin_name)
+		Disables a plugin with a specific name
+
+	plugin_help(plugin_name)
+		Returns a string containing the help message from a Plugin's get_help method
+
+	list_plugins()
+		Returns a str listing all plugins
+
 	get_updates(last_update)
 		Gets message updates from Telegram based on those last received.
 
@@ -85,6 +100,42 @@ class Bot:
 					else:
 						self.plugin_manager.process_message(self, message)
 			time.sleep(self.sleep_interval)
+
+	def reload_plugins(self):
+		"""
+		Reloads all plugins managed in self.plugin_manager, incorporating new changes made
+		"""
+
+		self.plugin_manager.reload_plugins(self)
+		return True
+
+	def enable_plugin(self, plugin_name):
+		"""
+		Enables a plugin with a specific name
+		"""
+
+		return self.plugin_manager.enable_plugin(plugin_name)
+
+	def disable_plugin(self, plugin_name):
+		"""
+		Disables a plugin with a specific name
+		"""
+
+		return self.plugin_manager.disable_plugin(plugin_name)
+
+	def plugin_help(self, plugin_name):
+		"""
+		Returns a string containing the help message from a Plugin's get_help method
+		"""
+
+		return self.plugin_manager.plugin_help(plugin_name)
+
+	def list_plugins(self):
+		"""
+		Returns a str listing all plugins
+		"""
+
+		return self.plugin_manager.list_plugins()
 
 	def get_updates(self, last_update):
 		"""

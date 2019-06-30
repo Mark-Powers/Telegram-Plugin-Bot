@@ -9,20 +9,24 @@ class BotPlugin(Plugin):
 
 	def on_command(self, command):
 		if command.command == "plugins":
-			return {"type":"message", "message": self.list_plugins()}
+			return {"type":"message", "message": self.bot.list_plugins()}
 		elif command.command == "reload":
-			self.bot.load_plugins()
-			return {"type":"message", "message": "Plugins are reloaded!"}
+			if self.bot.reload_plugins():
+				return {"type":"message", "message": "Plugins have been reloaded!"}
+			return {"type":"message", "message": "Failed to reload plugins!"}
 		elif command.command == "help":
-			matches = difflib.get_close_matches(command.args, [x.get_name() for x in self.bot.plugins])
-			if matches:
-				for plugin in self.bot.plugins:
-					if plugin.get_name() == matches[0]:
-						return {"type":"message", "message": plugin.get_help()}
-			return {"type":"message", "message": "I don't know that plugin!"}
+			return {"type":"message", "message": self.bot.plugin_help(command.args)}
+		elif command.command == "enable":
+			if self.bot.enable_plugin(command.args):
+				return {"type":"message", "message": "Successfully enabled {}.".format(command.args)}
+			return {"type":"message", "message": "Failed to enable {}, it may already be enabled or it does not exist!".format(command.args)}
+		elif command.command == "disable":
+			if self.bot.disable_plugin(command.args):
+				return {"type":"message", "message": "Successfully disabled {}.".format(command.args)}
+			return {"type":"message", "message": "Failed to disable {}, it may already be disabled or it does not exist!".format(command.args)}
 
 	def get_commands(self):
-		return {"plugins", "reload", "help"}
+		return {"plugins", "reload", "enable", "disable", "help"}
 
 	def get_name(self):
 		return "Plugin Manager"
@@ -32,12 +36,6 @@ class BotPlugin(Plugin):
 
 	def has_message_access(self):
 		return False
-
-	def list_plugins(self):
-		string = ""
-		for plugin in self.bot.plugins:
-			string += ", '" + plugin.get_name()+"'"
-		return string[2:]
 
 	def on_message(self, message):
 		pass

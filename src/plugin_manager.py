@@ -30,6 +30,11 @@ class PluginManager:
     list_commands()
 
     list_listeners()
+
+    plugin_help(plugin_name)
+
+    list_plugins()
+        Returns a str listing all plugins
     """
 
     def __init__(self, config, bot):
@@ -259,4 +264,27 @@ class PluginManager:
         """
 
         return "Listeners:\n"+str(self.message_plugins)
+
+    def plugin_help(self, plugin_name):
+        """
+        Returns a string containing the help message from a Plugin's get_help method
+        """
+
+        for plugin in self.plugins:
+            if plugin.get_name() == plugin_name:
+                return plugin.get_help()
+        return "That plugin does not exist!"
+
+    def list_plugins(self):
+        """
+        Returns a str listing all plugins
+        """
+
+        response = "The following plugins are loaded:\n"
+
+        for plugin in self.plugins:
+            response += plugin.get_name() + "\n"
+        return response
+
+
         
