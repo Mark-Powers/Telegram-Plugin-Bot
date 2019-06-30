@@ -1,4 +1,5 @@
 import importlib
+import os
 
 from plugin import Plugin
 
@@ -46,11 +47,13 @@ class PluginManager:
             The main Bot object responsible for sending and receiving messages
         """
 
-        # List of Plugin python files found in the Bot's config file to be imported and loaded
+        # List str of Plugin python files found in the Bot's config file to be imported and loaded
         self.config_plugins = config.plugins
-        # List of Plugin python files dynamically imported and loaded
+        # List str of Plugin python files dynamically imported and loaded
         self.dynamic_plugins = []
-        # Signifys if Plugin's have already been imported via Python's module lib
+        # List of imported modules
+        self.modules = []
+        # Bool signifys if all currently availale Plugins have been imported via Python's module lib
         self.imported = False
         # List of all Plugin objects
         self.plugins = []
@@ -84,18 +87,24 @@ class PluginManager:
         self.commands = {}
         self.is_enabled = {}
 
-        for plugin in self.config_plugins:
-            if not self.imported:
+        if not self.imported:
+            for plugin in self.config_plugins:
                 mod = importlib.import_module("plugins." + plugin, ".")
-            else:
-                mod = importlib.reload("plugin." + plugin) # Not currently working... cannot see module
-            class_ = getattr(mod, "BotPlugin")
-            self.plugins.append(class_("/plugins/{}/".format(plugin), bot))
+                class_ = getattr(mod, "BotPlugin")
+                self.plugins.append(class_(os.getcwd() + "/plugins/{}/".format(plugin), bot))
+                self.modules.append(mod)
+        else:
+            new_modules =  []
+            for module in self.modules:
+                mod = importlib.reload(module)
+                class_ = getattr(mod, "BotPlugin")
+                self.plugins.append(class_(os.getcwd() + "/plugins/{}/".format(module.__name__.split(".")[1]), bot))
+                new_modules.append(mod)
+            self.modules = new_modules
         
         self.imported = True
 
         for plugin in self.plugins:
-            print(plugin.get_name())
             if not plugin.get_commands() == None:
                 for command in plugin.get_commands():
                     self.commands[command] = plugin
@@ -151,6 +160,8 @@ class PluginManager:
             Message object detailing command, message, and Telegram user info
         """
 
+        print(message.command.command)
+
         if message.command.command in self.commands.keys():
             if self.is_enabled[self.commands[message.command.command].get_name()]:
                 return self.commands[message.command.command].on_command(message.command)
@@ -173,7 +184,7 @@ class PluginManager:
         """
 
         for plugin in self.message_plugins:
-            if self.is_enabled[plugin.name]:
+            if self.is_enabled[plugin.get_name()]:
                 reply = plugin.on_message(message)
 
                 if reply:

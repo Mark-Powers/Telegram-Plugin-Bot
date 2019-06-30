@@ -32,10 +32,11 @@ class Command:
 
 		text = message.text[1:]
 		args_index = text.index(" ") if " " in text else len(text)
+		self.command = text[:args_index]
+
 		text = text[args_index+1:]
 		user_match = re.search("@(\w+)", text)
 		
-		self.command = text[:args_index]
 		self.mention = user_match.group(1) if user_match else ""
 		self.args = text.strip()
 		self.chat = message.chat
