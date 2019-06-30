@@ -5,11 +5,6 @@ import pickle
 
 from plugin import Plugin
 
-
-def load(data_dir, bot):
-    return RPG_Plugin(data_dir, bot)
-
-
 """
 Class for handling dice rolls
 """
@@ -189,7 +184,7 @@ class CharacterManager:
 """
 Main Plugin class that manages command usage
 """
-class RPG_Plugin(Plugin):
+class BotPlugin(Plugin):
     def __init__(self, data_dir, bot):
         self.dir = data_dir
         self.manager = CharacterManager(self.dir)

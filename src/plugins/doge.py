@@ -4,10 +4,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
-def load(data_dir, bot):
-	return Doge(data_dir, bot)
-
-class Doge(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_directory, bot):
 		self.dir = data_directory
 		self.bot = bot

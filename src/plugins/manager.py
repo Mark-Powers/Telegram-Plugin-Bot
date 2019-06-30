@@ -2,10 +2,7 @@ import difflib
 
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Manager(data_dir, bot)
-
-class Manager(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_directory, bot):
 		self.dir = data_directory
 		self.bot = bot

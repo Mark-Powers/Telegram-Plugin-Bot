@@ -86,10 +86,11 @@ class PluginManager:
 
         for plugin in self.config_plugins:
             if not self.imported:
-                mod = importlib.__import__("plugins." + plugin)
+                mod = importlib.import_module("plugins." + plugin, ".")
             else:
-                mod = importlib.reload("plugins/" + plugin) # Not currently working... cannot see module
-            self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", bot)"))
+                mod = importlib.reload("plugin." + plugin) # Not currently working... cannot see module
+            class_ = getattr(mod, "BotPlugin")
+            self.plugins.append(class_("/plugins/{}/".format(plugin), bot))
         
         self.imported = True
 

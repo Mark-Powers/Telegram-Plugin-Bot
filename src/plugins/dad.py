@@ -1,10 +1,7 @@
 import random
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Dad(data_dir, bot)
-
-class Dad(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_directory, bot):
 		self.dir = data_directory
 		self.bot = bot

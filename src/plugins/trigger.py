@@ -3,10 +3,7 @@ import random
 import re
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Trigger(data_dir, bot)
-
-class Trigger(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, trigger_directory, bot):
 		self.dir = trigger_directory
 		self.triggers = {}

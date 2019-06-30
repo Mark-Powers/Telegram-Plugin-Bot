@@ -1,10 +1,7 @@
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return PluginName(data_dir, bot)
-
 # Name the class the name of your plugin
-class PluginName(Plugin):
+class BotPlugin(Plugin):
     def __init__(self, data_dir, bot):
         self.dir = data_dir
         self.bot = bot
