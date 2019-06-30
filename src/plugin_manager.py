@@ -88,7 +88,7 @@ class PluginManager:
             if not self.imported:
                 mod = importlib.__import__("plugins." + plugin)
             else:
-                importlib.reload("plugins." + plugin)
+                mod = importlib.reload("plugins/" + plugin) # Not currently working... cannot see module
             self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", bot)"))
         
         self.imported = True
