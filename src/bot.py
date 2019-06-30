@@ -4,7 +4,6 @@ import re
 import time
 import threading
 import os
-import imp
 
 from config import Config, ConfigWizard
 from command_wrappers import Command, User, Chat, Message

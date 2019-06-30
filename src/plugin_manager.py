@@ -1,4 +1,5 @@
 import importlib
+import imp
 
 from plugin import Plugin
 
@@ -86,7 +87,7 @@ class PluginManager:
 
         for plugin in self.config_plugins:
             if not self.imported:
-                importlib.import_module("plugins." + plugin)
+                mod = __import__("plugins." + plugin)
             else:
                 importlib.reload("plugins." + plugin)
             self.plugins.append(eval("mod."+plugin+".load(\"plugins/" + plugin + "\", bot)"))
@@ -94,8 +95,10 @@ class PluginManager:
         self.imported = True
 
         for plugin in self.plugins:
-            for command in plugin.get_commands():
-                self.commands[command] = plugin
+            print(plugin.get_name())
+            if not plugin.get_commands() == None:
+                for command in plugin.get_commands():
+                    self.commands[command] = plugin
             if plugin.has_message_access():
                 self.message_plugins.append(plugin)
             self.is_enabled[plugin.get_name()] = True
@@ -227,12 +230,16 @@ class PluginManager:
         Returns a string detailing all Plugins and their registered commands
         """
 
-        response = "Commands:\n"
+        response = "Available Plugins\n-----------------\n"
 
         for plugin in self.plugins:
-            response += "\t" + plugin.get_name() + "\n"
-            for command in plugin.get_commands():
-                response += "\t\t" + command + "\n"
+            response += plugin.get_name() + " Commands:\n\t"
+            
+            if not plugin.get_commands() == None:
+                for command in plugin.get_commands():
+                    response += command + ", "
+                response = response[:len(response)-2]
+            response += "\n"
         return response
 
     def list_listeners(self):
