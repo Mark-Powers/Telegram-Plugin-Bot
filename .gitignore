@@ -1,5 +1,6 @@
 config.txt
 src/plugins/*/
+src/plugins/*/*
 characters/*.txt
 **/__pycache__/*
 
