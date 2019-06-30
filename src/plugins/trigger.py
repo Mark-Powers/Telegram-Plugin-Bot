@@ -56,7 +56,8 @@ class Trigger(Plugin):
 		pass
 	
 	def disable(self):
-
+		pass
+		
 	def add(self, command):
 		parts = command.args.splitlines()
 		if len(parts) > 1 and parts[0]:
