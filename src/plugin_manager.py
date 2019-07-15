@@ -167,10 +167,23 @@ class PluginManager:
 
         print(message.command.command)
 
-        if message.command.command in self.commands.keys():
-            if self.is_enabled[self.commands[message.command.command].get_name()]:
-                return self.commands[message.command.command].on_command(message.command)
-        return {"type": "message", "message": "That command is currently disabled or does not exist."}
+        try:
+            if message.command.command in self.commands.keys():
+                if self.is_enabled[self.commands[message.command.command].get_name()]:
+                    response = self.commands[message.command.command].on_command(message.command)
+                else:
+                    response =  {"type": "message", "message": "That command is currently disabled or does not exist."}
+            else:
+                response =  {"type": "message", "message": "That command is currently disabled or does not exist."}
+
+            if response["type"] == "message":
+                bot.send_message(message.chat.id, response["message"])
+            elif response["type"] == "photo":
+                bot.send_photo(message.chat.id, response["caption"], response["file_name"])
+        except KeyError:
+            bot.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
+        except Exception as e:
+            bot.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
 
     def process_message(self, bot, message):
         """

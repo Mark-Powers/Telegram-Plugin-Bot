@@ -77,7 +77,7 @@ class Bot:
 
 		while True:
 			updates = self.get_updates(last_update)
-			#updates = json.loads(requests.get(self.base_url + 'getUpdates', params=dict(offset=(last_update+1))).text)
+
 			for update in updates["result"]:
 				last_update = update["update_id"]
 
@@ -86,19 +86,9 @@ class Bot:
 					print(str(last_update)+": "+message.sent_from.username)
 
 					if message.is_command:
-						try:
-							response = self.plugin_manager.process_plugin(self, message)
-
-							if response["type"] == "message":
-								self.send_message(message.chat.id, response["message"])
-							elif response["type"] == "photo":
-								self.send_photo(message.chat.id, response["caption"], response["file_name"])
-						except KeyError:
-							self.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
-						except Exception as e:
-							self.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
+						threading._start_new_thread(self.plugin_manager.process_plugin, (self, message))
 					else:
-						self.plugin_manager.process_message(self, message)
+						threading._start_new_thread(self.plugin_manager.process_message, (self, message))
 			time.sleep(self.sleep_interval)
 
 	def reload_plugins(self):
