@@ -13,7 +13,12 @@ class BotThread(threading.Thread):
 	-------
     run()
         Runs the Bot's start() method
+    stop()
+        Raises stop event flag
+    stopped()
+        Returns true if the stop event flag has been raised
     """
+    
     def __init__(self, bot, threadID, name):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -32,9 +37,17 @@ class BotThread(threading.Thread):
         print("Stopping thread with name:{}".format(self.name))
 
     def stop(self):
+        """
+        Raises stop event flag (sets it to true)
+        """
+
         self._stop_event.set()
 
     def stopped(self):
+        """
+        Returns true if the stop event flag has been raised (the stop method has been called)
+        """
+
         return self._stop_event.is_set()
 
 
