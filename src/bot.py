@@ -57,12 +57,12 @@ class Bot:
 			Configuration object containing data found within the bot's configuration file.
 		"""
 
+		self.logger = logging.getLogger('bot_log')
 		self.directory = config.bot_dir
 		self.base_url = "https://api.telegram.org/bot"+config.token+"/"
 		self.sleep_interval = config.sleep_interval
 		self.username = json.loads(requests.get(self.base_url + "getMe").text)["result"]["username"]
 		self.plugin_manager = PluginManager(config, self)
-		self.logger = logging.getLogger(__name__)
 
 		print(self.plugin_manager.list_commands())
 		print(self.plugin_manager.list_listeners())
@@ -188,6 +188,6 @@ class Bot:
 		files = {'photo': open(file_name, 'rb')}
 		data = dict(chat_id=id, caption=message)
 
-		self.logger.info("Sending photo with caption ({}) with filename ({}) to channel with id {}".format(message, filename, id))
+		self.logger.info("Sending photo with caption ({}) with filename ({}) to channel with id {}".format(message, file_name, id))
 		return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
 

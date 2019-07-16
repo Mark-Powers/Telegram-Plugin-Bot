@@ -53,23 +53,26 @@ class BotThread(threading.Thread):
 
 
 # Create logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('bot_log')
+logger.setLevel(logging.DEBUG)
 
 # Create handlers
 c_handler = logging.StreamHandler()
-f_handler = logging.FileHandler("bot.log")
-c_handler.setLevel(logging.CRITICAL)
-f_handler.setLevel(logging.CRITICAL)
+f_handler = logging.FileHandler('bot.log')
+c_handler.setLevel(logging.DEBUG)
+f_handler.setLevel(logging.DEBUG)
 
 # Create formatters and add to handlers
-c_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-f_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 c_handler.setFormatter(c_format)
 f_handler.setFormatter(f_format)
 
 # Add handlers to logger
 logger.addHandler(c_handler)
 logger.addHandler(f_handler)
+
+logger.info('Starting up bot...')
 
 # Setup config
 if os.path.exists("config.txt"):
@@ -84,7 +87,7 @@ bot_thread1.start()
 
 # Enable cli
 command = ""
-print("Command-line enabled:")
+logger.info("Command-line enabled:")
 
 while not command == "/quit":
     command = input()

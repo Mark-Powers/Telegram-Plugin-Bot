@@ -1,3 +1,4 @@
+import logging
 import importlib
 import os
 
@@ -52,6 +53,8 @@ class PluginManager:
             The main Bot object responsible for sending and receiving messages
         """
 
+        # Reference to custom logger
+        self.logger = logging.getLogger('bot_log')
         # List str of Plugin python files found in the Bot's config file to be imported and loaded
         self.config_plugins = config.plugins
         # List str of Plugin python files dynamically imported and loaded
@@ -70,8 +73,6 @@ class PluginManager:
         self.is_enabled = {}
         # Loads Plugins listed within the configuration file
         self.load_plugins(bot)
-        # Reference to custom logger
-        self.logger = logging.getLogger(__name__)
 
     def load_plugins(self, bot):
         """
@@ -244,7 +245,7 @@ class PluginManager:
                     return True
                 self.logger.warning("Unable to enable plugin with name ({}), it is already enabled".format(plugin.get_name()))
                 return False
-        self.logger.warning("Unable to enable plugin with name ({}), it does not exist!".format(plugin_name)
+        self.logger.warning("Unable to enable plugin with name ({}), it does not exist!".format(plugin_name))
         return False
 
     def disable_plugin(self, plugin_name):
@@ -270,7 +271,7 @@ class PluginManager:
                     return True
                 self.logger.warning("Unable to disable plugin with name ({}), it is already disabled".format(plugin.get_name()))
                 return False
-        self.logger.warning("Unable to disable plugin with name ({}), it does not exist!".format(plugin_name)
+        self.logger.warning("Unable to disable plugin with name ({}), it does not exist!".format(plugin_name))
         return False
 
     def list_commands(self):
