@@ -18,7 +18,7 @@ class BotThread(threading.Thread):
     stopped()
         Returns true if the stop event flag has been raised
     """
-    
+
     def __init__(self, bot, threadID, name):
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -66,6 +66,7 @@ bot_thread1.start()
 
 # Enable cli
 command = ""
+print("Command-line enabled:")
 
 while not command == "/quit":
     command = input()
