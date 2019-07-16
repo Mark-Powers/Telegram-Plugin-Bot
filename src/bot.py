@@ -1,3 +1,4 @@
+import logging
 import requests
 import json
 import re
@@ -61,6 +62,7 @@ class Bot:
 		self.sleep_interval = config.sleep_interval
 		self.username = json.loads(requests.get(self.base_url + "getMe").text)["result"]["username"]
 		self.plugin_manager = PluginManager(config, self)
+		self.logger = logging.getLogger(__name__)
 
 		print(self.plugin_manager.list_commands())
 		print(self.plugin_manager.list_listeners())
@@ -71,6 +73,7 @@ class Bot:
 		Responses made by the bot are based on functionality contained within Plugins.
 		"""
 
+		self.logger.info("Starting telegram update loop")
 		last_update = 0
 
 		while not thread.stopped():
@@ -84,11 +87,13 @@ class Bot:
 					print(str(last_update)+": "+message.sent_from.username)
 
 					if message.is_command:
+						self.logger.info("Command received, processing plugins")
 						# Disabled threading for commands, need to implement locking synch for processing plugins due to ambiguous local data
 						self.plugin_manager.process_plugin, (self, message)
 					else:
 						threading._start_new_thread(self.plugin_manager.process_message, (self, message))
 			time.sleep(self.sleep_interval)
+		self.logger.warn("Ending telegram update loop due to thread manually being killed")
 
 	def reload_plugins(self):
 		"""
@@ -103,6 +108,7 @@ class Bot:
 		Enables a plugin with a specific name
 		"""
 
+		self.logger.info("Attempting to enable plugin with name {}".format(plugin_name))
 		return self.plugin_manager.enable_plugin(plugin_name)
 
 	def disable_plugin(self, plugin_name):
@@ -110,6 +116,7 @@ class Bot:
 		Disables a plugin with a specific name
 		"""
 
+		self.logger.info("Attempting to disable plugin with name {}".format(plugin_name))
 		return self.plugin_manager.disable_plugin(plugin_name)
 
 	def plugin_help(self, plugin_name):
@@ -117,6 +124,7 @@ class Bot:
 		Returns a string containing the help message from a Plugin's get_help method
 		"""
 
+		self.logger.info("Requested help message from plugin with name {}".format(plugin_name))
 		return self.plugin_manager.plugin_help(plugin_name)
 
 	def list_plugins(self):
@@ -124,6 +132,7 @@ class Bot:
 		Returns a str listing all plugins
 		"""
 
+		self.logger.info("Request recieved to list all plugins")
 		return self.plugin_manager.list_plugins()
 
 	def get_updates(self, last_update):
@@ -155,6 +164,7 @@ class Bot:
 			The message to be send to a chatroom.
 		"""
 
+		self.logger.info("Sending message ({}) to channel with id {}".format(message, id))
 		return requests.get(self.base_url + 'sendMessage', params=dict(chat_id=id, text=message))
 
 	def send_photo(self, id, message, file_name):
@@ -178,5 +188,6 @@ class Bot:
 		files = {'photo': open(file_name, 'rb')}
 		data = dict(chat_id=id, caption=message)
 
+		self.logger.info("Sending photo with caption ({}) with filename ({}) to channel with id {}".format(message, filename, id))
 		return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
 
