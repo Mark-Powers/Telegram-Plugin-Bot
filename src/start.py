@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 
@@ -51,7 +52,24 @@ class BotThread(threading.Thread):
         return self._stop_event.is_set()
 
 
-# Setup and configure logger
+# Create logger
+logger = logging.getLogger(__name__)
+
+# Create handlers
+c_handler = logging.StreamHandler()
+f_handler = logging.FileHandler("bot.log")
+c_handler.setLevel(logging.CRITICAL)
+f_handler.setLevel(logging.CRITICAL)
+
+# Create formatters and add to handlers
+c_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+f_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+c_handler.setFormatter(c_format)
+f_handler.setFormatter(f_format)
+
+# Add handlers to logger
+logger.addHandler(c_handler)
+logger.addHandler(f_handler)
 
 # Setup config
 if os.path.exists("config.txt"):
