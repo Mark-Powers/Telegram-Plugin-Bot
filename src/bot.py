@@ -5,7 +5,6 @@ import time
 import threading
 import os
 
-from config import Config, ConfigWizard
 from command_wrappers import Command, User, Chat, Message
 from plugin_manager import PluginManager
 
@@ -49,7 +48,6 @@ class Bot:
 	def __init__(self, config):
 		"""
 		Sets up initial bot data and the PluginManager which loads inital plugins.
-
 		...
 
 		Parameters
@@ -64,7 +62,10 @@ class Bot:
 		self.username = json.loads(requests.get(self.base_url + "getMe").text)["result"]["username"]
 		self.plugin_manager = PluginManager(config, self)
 
-	def start(self):
+		print(self.plugin_manager.list_commands())
+		print(self.plugin_manager.list_listeners())
+
+	def start(self, thread):
 		"""
 		Receives and sends messages to Telegram forever.
 		Responses made by the bot are based on functionality contained within Plugins.
@@ -72,10 +73,7 @@ class Bot:
 
 		last_update = 0
 
-		print(self.plugin_manager.list_commands())
-		print(self.plugin_manager.list_listeners())
-
-		while True:
+		while not thread.stopped():
 			updates = self.get_updates(last_update)
 
 			for update in updates["result"]:
@@ -86,7 +84,8 @@ class Bot:
 					print(str(last_update)+": "+message.sent_from.username)
 
 					if message.is_command:
-						threading._start_new_thread(self.plugin_manager.process_plugin, (self, message))
+						# Disabled threading for commands, need to implement locking synch for processing plugins due to ambiguous local data
+						self.plugin_manager.process_plugin, (self, message)
 					else:
 						threading._start_new_thread(self.plugin_manager.process_message, (self, message))
 			time.sleep(self.sleep_interval)
@@ -181,10 +180,3 @@ class Bot:
 
 		return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
 
-
-if os.path.exists("config.txt"):
-	conf = Config("config.txt")
-else:
-	conf = ConfigWizard("config.txt").conf
-bot = Bot(conf)
-bot.start()
