@@ -10,4 +10,4 @@ Requirements
 - Telegram Bot Token
   - Make sure to change the privacy settings to see all messages
 
-Run *bot.by* using Python 3. The first time it is a ran, you will be prompted to enter your bot's token, directory for the bot, sleep interval, and a list of plugins to load. This will be saved in `config.txt`.
+Run *start.py* using Python 3. The first time it is a ran, you will be prompted to enter your bot's token, directory for the bot, sleep interval, and a list of plugins to load. This will be saved in `config.txt`.
