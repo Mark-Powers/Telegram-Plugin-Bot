@@ -102,7 +102,7 @@ class PluginManager:
                 mod = importlib.import_module("plugins." + plugin, ".")
                 self.logger.info("Importing plugin.{}...".format(plugin))
                 class_ = getattr(mod, "BotPlugin")
-                self.plugins.append(class_(os.getcwd() + "/plugins/{}/".format(plugin), bot))
+                self.plugins.append(class_(os.getcwd() + "/src/plugins/{}/".format(plugin), bot))
                 self.modules.append(mod)
                 self.logger.info("Successfully instantiated plugin!")
         else:
@@ -111,7 +111,7 @@ class PluginManager:
                 mod = importlib.reload(module)
                 self.logger.info("Attempting to reload plugin module with name {}...".format(module.__name__.split(".")[1]))
                 class_ = getattr(mod, "BotPlugin")
-                self.plugins.append(class_(os.getcwd() + "/plugins/{}/".format(module.__name__.split(".")[1]), bot))
+                self.plugins.append(class_(os.getcwd() + "/src/plugins/{}/".format(module.__name__.split(".")[1]), bot))
                 new_modules.append(mod)
                 self.logger.info("Successfully reloaded and instantiated plugin!")
             self.modules = new_modules
