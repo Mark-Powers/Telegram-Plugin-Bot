@@ -1,4 +1,8 @@
 config.txt
-plugins/*/
+bot.log
+launch.json
+src/plugins/*/
+src/plugins/*/*
 characters/*.txt
 **/__pycache__/*
+

@@ -1,10 +1,7 @@
 import random
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Dad(data_dir, bot)
-
-class Dad(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_directory, bot):
 		self.dir = data_directory
 		self.bot = bot
@@ -24,3 +21,18 @@ class Dad(Plugin):
 		if message.text.lower().startswith("im "):
 			return "Hi " + message.text[3:].strip() + ", I'm dad!"
 		return
+
+	def on_command(self, command):
+		pass
+
+	def get_commands(self):
+		pass
+
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass
+
+	
+

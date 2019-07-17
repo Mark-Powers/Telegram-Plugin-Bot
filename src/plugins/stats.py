@@ -5,10 +5,7 @@ import matplotlib.pyplot as plt
 
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Stats(data_dir, bot)
-
-class Stats(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_directory, bot):
 		self.dir = data_directory
 		self.bot = bot
@@ -36,6 +33,12 @@ class Stats(Plugin):
 	def on_message(self, message):
 		with open(self.dir+"/log.csv", 'a') as f:
 			f.write(",".join((str(message.date), message.sent_from.username, str(len(message.text))))+"\n")
+
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass
 
 	def plot(self):
 		data = np.genfromtxt(self.dir+"/log.csv", delimiter=',', names=['date', 'name', 'length'])

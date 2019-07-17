@@ -2,7 +2,29 @@ import re
 import os
 
 class Config:
+	"""
+	Reads writes information to/from the program's configuration file.
+
+	...
+
+	Methods
+	-------
+	write_config(file_path)
+		Attempts to write out configuration info to the Configuration file.
+	"""
+
 	def __init__(self, file_path=None):
+		"""
+		Attempts to initally read existing data within the configuation file.
+
+		...
+
+		Parameters
+		---------
+		file_path: str
+			Designated path to the configuration file.
+		"""
+
 		if not file_path:
 			return
 		with open(file_path, 'r') as f:
@@ -31,6 +53,17 @@ class Config:
 				self.plugins = {}
 
 	def write_config(self, file_path):
+		"""
+		Attempts to write out configuration info to the Configuration file.
+
+		...
+
+		Parameters
+		----------
+		file_path: str
+			Designated path to the configuration file.
+		"""
+
 		with open(file_path, 'w') as f:
 			f.write("token=\""+self.token+"\"\n")
 			f.write("bot_dir=\""+self.bot_dir+"\"\n")
@@ -38,7 +71,23 @@ class Config:
 			f.write("plugins=["+",".join(self.plugins)+"]\n")
 
 class ConfigWizard:
+	"""
+	Initializes the configuration file with information inputted by the user.
+	"""
+
 	def __init__(self, file_path):
+		"""
+		Attempts to create the configuration file through user inputted data.
+		Saves inputs to the configuration file.
+
+		...
+
+		Parameters
+		----------
+		file_path:str
+			Designated path to the configuration file.
+		"""
+
 		self.conf = Config()
 		print("No config.txt file found, making one instead!")
 		self.conf.token = input("What is your bots token?\n")
