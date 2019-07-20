@@ -179,24 +179,22 @@ class PluginManager:
         """
 
         try:
-            if message.command.command in self.commands.keys():
-                if self.is_enabled[self.commands[message.command.command].get_name()]:
-                    self.logger.info("Processing command ({}) for plugin ({})".format(message.command.command, self.commands[message.command.command].get_name()))
-                    response = self.commands[message.command.command].on_command(message.command)
-                else:
-                    self.logger.warning("Unable to process command {} as it is disabled".format(message.command.command))
-                    response =  {"type": "message", "message": "That command is currently disabled or does not exist."}
+            if self.is_enabled[self.commands[message.command.command].get_name()]:
+                self.logger.info("Processing command ({}) for plugin ({})".format(message.command.command, self.commands[message.command.command].get_name()))
+                response = self.commands[message.command.command].on_command(message.command)
             else:
-                self.logger.warning("Invalid command ({}) received!".format(message.command.command))
-                response =  {"type": "message", "message": "That command is currently disabled or does not exist"}
+                self.logger.warning("Unable to process command {} as it is disabled".format(message.command.command))
+                response =  {"type": "message", "message": "That command is currently disabled or does not exist."}
 
             if response["type"] == "message":
                 bot.send_message(message.chat.id, response["message"])
             elif response["type"] == "photo":
                 bot.send_photo(message.chat.id, response["caption"], response["file_name"])
         except KeyError:
+            self.logger.warning("Unable to process command {} as it is invalid".format(message.command.command))
             bot.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
         except Exception as e:
+            self.logger.exception("An unknown exception occurred...")
             bot.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
 
     def process_message(self, bot, message):
