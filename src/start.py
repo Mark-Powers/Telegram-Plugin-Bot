@@ -20,12 +20,12 @@ class BotThread(threading.Thread):
         Returns true if the stop event flag has been raised
     """
 
-    def __init__(self, bot, threadID, name):
+    def __init__(self, bot, threadID):
         threading.Thread.__init__(self)
+        self.logger = logging.getLogger('bot_log')
         self.setDaemon(True)
         self._stop_event = threading.Event()
         self.bot = bot
-        self.name = name
         self.threadID = threadID
 
     def run(self):
@@ -33,9 +33,9 @@ class BotThread(threading.Thread):
         Runs the Bot class's start() method on a separate thread
         """
 
-        print("Starting thread with name:{}".format(self.name))
+        self.logger.log("Starting thread with id:{}".format(self.threadID))
         self.bot.start(self)
-        print("Stopping thread with name:{}".format(self.name))
+        self.logger.log("Stopping thread with id:{}".format(self.threadID))
 
     def stop(self):
         """
@@ -82,7 +82,7 @@ else:
 
 # Create and start the bot
 bot = Bot(conf)
-bot_thread1 = BotThread(bot, 0, "Start-0")
+bot_thread1 = BotThread(bot, 0)
 bot_thread1.start()
 
 # Enable cli
