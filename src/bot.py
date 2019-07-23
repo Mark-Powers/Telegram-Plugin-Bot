@@ -88,8 +88,7 @@ class Bot:
 
 					if message.is_command:
 						self.logger.info("Command received, processing plugins")
-						# Disabled threading for commands, need to implement locking synch for processing plugins due to ambiguous local data
-						self.plugin_manager.process_plugin(self, message)
+						threading._start_new_thread(self.plugin_manager.process_plugin, (self, message))
 					else:
 						threading._start_new_thread(self.plugin_manager.process_message, (self, message))
 			time.sleep(self.sleep_interval)
