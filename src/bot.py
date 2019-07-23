@@ -73,7 +73,6 @@ class Bot:
 		Responses made by the bot are based on functionality contained within Plugins.
 		"""
 
-		self.logger.info("Starting telegram update loop")
 		last_update = 0
 
 		while not thread.stopped():
@@ -84,14 +83,17 @@ class Bot:
 
 				if "message" in update:
 					message = Message(update["message"])
-					print(str(last_update)+": "+message.sent_from.username)
+					self.logger.info(str(last_update)+": "+message.sent_from.username)
 
 					if message.is_command:
 						self.logger.info("Command received, processing plugins")
-						threading._start_new_thread(self.plugin_manager.process_plugin, (self, message))
+						t = threading.Thread(target = self.plugin_manager.process_plugin, args = (self, message))
+						t.setDaemon(True)
+						t.start()
 					else:
-						threading._start_new_thread(self.plugin_manager.process_message, (self, message))
-			time.sleep(self.sleep_interval)
+						t = threading.Thread(target = self.plugin_manager.process_message, args = (self, message))
+						t.setDaemon(True)
+						t.start()
 		self.logger.warn("Ending telegram update loop due to thread manually being killed")
 
 	def reload_plugins(self):
@@ -189,4 +191,3 @@ class Bot:
 
 		self.logger.info("Sending photo with caption ({}) with filename ({}) to channel with id {}".format(message, file_name, id))
 		return requests.get(self.base_url + 'sendPhoto', files=files, data=data)
-

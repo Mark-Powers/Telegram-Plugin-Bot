@@ -33,9 +33,9 @@ class BotThread(threading.Thread):
         Runs the Bot class's start() method on a separate thread
         """
 
-        self.logger.log("Starting thread with id:{}".format(self.threadID))
+        self.logger.info("Starting thread with id:{}".format(self.threadID))
         self.bot.start(self)
-        self.logger.log("Stopping thread with id:{}".format(self.threadID))
+        self.logger.info("Stopping thread with id:{}".format(self.threadID))
 
     def stop(self):
         """
@@ -82,8 +82,9 @@ else:
 
 # Create and start the bot
 bot = Bot(conf)
-bot_thread1 = BotThread(bot, 0)
-bot_thread1.start()
+
+thread = BotThread(bot, 0)
+thread.start()
 
 # Enable cli
 command = ""
@@ -92,6 +93,6 @@ logger.info("Command-line enabled:")
 while not command == "/quit":
     command = input()
 
-# Close all threads
-bot_thread1.stop()
-bot_thread1.join()
+# Close bot thread
+thread.stop()
+thread.join()
