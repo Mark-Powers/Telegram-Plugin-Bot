@@ -90,7 +90,7 @@ thread.start()
 command = ""
 logger.info("Command-line enabled:")
 
-while not command == "/quit":
+while not command == "quit":
     command = input()
 
 # Close bot thread
