@@ -3,6 +3,6 @@ bot.log
 launch.json
 src/plugins/*/
 src/plugins/*/*
-plugins/characters/*
+plugins/*
 **/__pycache__/*
 
