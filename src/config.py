@@ -45,6 +45,11 @@ class Config:
 				self.sleep_interval = 2
 
 			try:
+				self.threads = int(re.search("threads=\"(.+)\"", config).group(1))
+			except:
+				self.threads = 1
+
+			try:
 				self.plugins = []
 				p = re.search("plugins=\[(.+)\]", config).group(1).split(",")
 				for plugin in p:
@@ -68,6 +73,7 @@ class Config:
 			f.write("token=\""+self.token+"\"\n")
 			f.write("bot_dir=\""+self.bot_dir+"\"\n")
 			f.write("sleep_interval=\""+str(self.sleep_interval)+"\"\n")
+			f.write("threads=\""+str(self.threads)+"\"\n")
 			f.write("plugins=["+",".join(self.plugins)+"]\n")
 
 class ConfigWizard:
@@ -93,5 +99,6 @@ class ConfigWizard:
 		self.conf.token = input("What is your bots token?\n")
 		self.conf.bot_dir = input("What is the abs path of the directory with bot.py?\n")
 		self.conf.sleep_interval = int(input("How many seconds should be between fetches of new messages?\n"))
+		self.conf.threads = int (input("How many threads would you like to use? (Recommended 1)\n"))
 		self.conf.plugins = input("What plugins would you like to use (seperate with ',')?\n").split(",")
 		self.conf.write_config(file_path)
