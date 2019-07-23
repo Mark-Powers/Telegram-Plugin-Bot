@@ -1,6 +1,7 @@
 import logging
 import importlib
 import os
+import threading
 
 from plugin import Plugin
 
@@ -55,6 +56,8 @@ class PluginManager:
 
         # Reference to custom logger
         self.logger = logging.getLogger('bot_log')
+        # Reference to thread lock
+        self.lock = threading.Lock()
         # List str of Plugin python files found in the Bot's config file to be imported and loaded
         self.config_plugins = config.plugins
         # List str of Plugin python files dynamically imported and loaded
@@ -178,13 +181,19 @@ class PluginManager:
             Message object detailing command, message, and Telegram user info
         """
 
+
+
         try:
+            self.lock.acquire()
+
             if self.is_enabled[self.commands[message.command.command].get_name()]:
                 self.logger.info("Processing command ({}) for plugin ({})".format(message.command.command, self.commands[message.command.command].get_name()))
                 response = self.commands[message.command.command].on_command(message.command)
             else:
                 self.logger.warning("Unable to process command {} as it is disabled".format(message.command.command))
                 response =  {"type": "message", "message": "That command is currently disabled or does not exist."}
+
+            self.lock.release()
 
             if response["type"] == "message":
                 bot.send_message(message.chat.id, response["message"])
@@ -193,9 +202,11 @@ class PluginManager:
         except KeyError:
             self.logger.warning("Unable to process command {} as it is invalid".format(message.command.command))
             bot.send_message(message.chat.id, "Invalid command!\n'" + message.command.command + "'")
+            self.lock.release()
         except Exception as e:
             self.logger.exception("An unknown exception occurred...")
             bot.send_message(message.chat.id, "I'm afraid I can't do that.\n'"+str(e)+"'")
+            self.lock.release()
 
     def process_message(self, bot, message):
         """
@@ -213,12 +224,16 @@ class PluginManager:
             Message object detailing command, message, and Telegram user info
         """
 
+        self.lock.acquire()
+
         for plugin in self.message_plugins:
             if self.is_enabled[plugin.get_name()]:
                 reply = plugin.on_message(message)
 
                 if reply:
                     bot.send_message(message.chat.id, reply)
+
+        self.lock.release()
 
     def enable_plugin(self, plugin_name):
         """
