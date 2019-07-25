@@ -68,7 +68,7 @@ class BotPlugin(Plugin):
 	def on_message(self, message):
 		w = message.text.split(" ")
 
-		for word in self.words:
+		for word in w:
 			if "http" in word:
 				w.remove(word)
 
