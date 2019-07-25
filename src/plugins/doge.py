@@ -66,7 +66,14 @@ class BotPlugin(Plugin):
 		return True
 
 	def on_message(self, message):
-		self.words.extend(message.text.split(" "))
+		w = message.text.split(" ")
+
+		for word in self.words:
+			if "http" in word:
+				w.remove(word)
+
+		self.words.extend(w)
+
 		return ""
 
 	def enable(self):
