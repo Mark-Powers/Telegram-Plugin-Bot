@@ -3,10 +3,7 @@ import random
 import re
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Trigger(data_dir, bot)
-
-class Trigger(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, trigger_directory, bot):
 		self.dir = trigger_directory
 		self.triggers = {}
@@ -52,6 +49,12 @@ class Trigger(Plugin):
 	def has_message_access(self):
 		return True
 
+	def enable(self):
+		pass
+	
+	def disable(self):
+		pass
+		
 	def add(self, command):
 		parts = command.args.splitlines()
 		if len(parts) > 1 and parts[0]:

@@ -2,10 +2,7 @@ import os
 import random
 from plugin import Plugin
 
-def load(data_dir, bot):
-	return Pasta(data_dir, bot)
-
-class Pasta(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_dir, bot):
 		self.dir = data_dir
 		self.pasta = {}
@@ -55,3 +52,15 @@ class Pasta(Plugin):
 
 	def get_help(self):
 		return "/pasta <name (optional)>"
+
+	def on_message(self, message):
+		pass
+
+	def has_message_access(self):
+		return False
+	
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass

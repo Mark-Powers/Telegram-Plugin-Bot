@@ -4,10 +4,7 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
-def load(data_dir, bot):
-	return Doge(data_dir, bot)
-
-class Doge(Plugin):
+class BotPlugin(Plugin):
 	def __init__(self, data_directory, bot):
 		self.dir = data_directory
 		self.bot = bot
@@ -69,5 +66,18 @@ class Doge(Plugin):
 		return True
 
 	def on_message(self, message):
-		self.words.extend(message.text.split(" "))
+		w = message.text.split(" ")
+
+		for word in w:
+			if "http" in word:
+				w.remove(word)
+
+		self.words.extend(w)
+
 		return ""
+
+	def enable(self):
+		pass
+
+	def disable(self):
+		pass
